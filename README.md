@@ -4,28 +4,24 @@
 
 Built with React, Node.js, Express and PostgreSQL.
 
-🌐 **Live demo:** [taskyard-fronten.onrender.com](https://taskyard-fronten.onrender.com)
+**Live demo:** [taskyard-fronten.onrender.com](https://taskyard-fronten.onrender.com)
 
 > ⏳ **Note:** the backend runs on Render's free tier, so it sleeps when idle. The first request can take **30-60 seconds** to wake it up. After that it responds normally.
 
----
+## Features
 
-## ✨ Features
+**Authentication:** register and log in with JWT; passwords are hashed with bcrypt; each user sees only their own tasks
+**Kanban board:** drag tasks between To do, In progress and Done (also works with touch, keyboard and a "Move to" menu)
+**Task management:** create, edit, complete and delete tasks
+**Priorities and categories:** low, medium or high priority; Personal, College, Work or Project
+**Due dates:** upcoming (next 3 days) and overdue views
+**Search, filter and sort** by status, category, priority or due date
+**Dashboard:** totals, in-progress and overdue counts, and a completion ring
+**Light and dark mode**, saved between visits
+**Responsive layout** for desktop and mobile
+**Validation and error handling** on both frontend and backend
 
-- 🔐 **Authentication:** register and log in with JWT; passwords are hashed with bcrypt; each user sees only their own tasks
-- 🗂️ **Kanban board:** drag tasks between To do, In progress and Done (also works with touch, keyboard and a "Move to" menu)
-- ➕ **Task management:** create, edit, complete and delete tasks
-- 🎯 **Priorities and categories:** low, medium or high priority; Personal, College, Work or Project
-- 📅 **Due dates:** upcoming (next 3 days) and overdue views
-- 🔍 **Search, filter and sort** by status, category, priority or due date
-- 📊 **Dashboard:** totals, in-progress and overdue counts, and a completion ring
-- 🌗 **Light and dark mode**, saved between visits
-- 📱 **Responsive layout** for desktop and mobile
-- ✔️ **Validation and error handling** on both frontend and backend
-
----
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer      | Technologies                                   |
 | ---------- | ---------------------------------------------- |
@@ -34,46 +30,40 @@ Built with React, Node.js, Express and PostgreSQL.
 | Database   | PostgreSQL (Neon)                              |
 | Deployment | Render (frontend and backend), Neon (database) |
 
----
+## Project Structure
 
-## 📂 Project Structure
-
-```
 TaskYard/
 ├── backend/
-│   ├── routes/
-│   │   ├── auth.js
-│   │   └── tasks.js
-│   ├── middleware/
-│   │   └── authMiddleware.js
-│   ├── migrations/
-│   │   └── 001_add_task_status.sql
-│   ├── app.js
-│   ├── db.js
-│   └── .env.example
+│ ├── routes/
+│ │ ├── auth.js
+│ │ └── tasks.js
+│ ├── middleware/
+│ │ └── authMiddleware.js
+│ ├── migrations/
+│ │ └── 001_add_task_status.sql
+│ ├── app.js
+│ ├── db.js
+│ └── .env.example
 │
 ├── frontend/
-│   ├── public/favicon.svg
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Auth.jsx
-│   │   │   ├── KanbanBoard.jsx
-│   │   │   ├── TaskForm.jsx
-│   │   │   ├── TaskItem.jsx
-│   │   │   └── TaskList.jsx
-│   │   ├── api.js
-│   │   ├── taskStatus.js
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   └── main.jsx
-│   └── .env.example
+│ ├── public/favicon.svg
+│ ├── src/
+│ │ ├── components/
+│ │ │ ├── Auth.jsx
+│ │ │ ├── KanbanBoard.jsx
+│ │ │ ├── TaskForm.jsx
+│ │ │ ├── TaskItem.jsx
+│ │ │ └── TaskList.jsx
+│ │ ├── api.js
+│ │ ├── taskStatus.js
+│ │ ├── App.jsx
+│ │ ├── App.css
+│ │ └── main.jsx
+│ └── .env.example
 │
 └── README.md
-```
 
----
-
-## 🗄️ Database
+## Database
 
 ```sql
 users (id, name, email UNIQUE, password)
@@ -87,7 +77,7 @@ If you already have a `tasks` table without `status`, run `backend/migrations/00
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -145,7 +135,7 @@ Open `http://localhost:5173`.
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Authentication
 
@@ -172,7 +162,7 @@ Open `http://localhost:5173`.
 
 ---
 
-## 🧠 Design Decisions
+## Design Decisions
 
 - **Stateless auth with JWT:** middleware verifies the token on every task route.
 - **Passwords:** hashed with bcrypt and never stored in plain text.
@@ -183,7 +173,7 @@ Open `http://localhost:5173`.
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] Authentication
 - [x] Kanban board with drag-and-drop
@@ -197,8 +187,8 @@ Open `http://localhost:5173`.
 
 ---
 
-## 👤 Author
+## Author
 
-**Manideep**, BE Computer Science and Business Systems
+**Manideep**
 
 GitHub: [@Manideep9900](https://github.com/Manideep9900)

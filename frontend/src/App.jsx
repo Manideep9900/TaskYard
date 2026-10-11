@@ -380,13 +380,7 @@ const upcomingTasks = safeTasks.filter((task) => {
             <button className="ty-logout-button" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
               {theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode"}
             </button>
-            <button
-  type="button"
-  className="ty-logout-button"
-  onClick={toggleTheme}
->
-  {theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode"}
-</button>
+            
             <button className="ty-logout-button" onClick={logout}>Log out ↗</button>
           </div>
         </header>

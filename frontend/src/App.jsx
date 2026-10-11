@@ -30,7 +30,17 @@ function App() {
   return savedUser ? JSON.parse(savedUser) : null;
 });
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState(() => localStorage.getItem("taskyard-theme") || "light");
+  const [theme, setTheme] = useState(() => {
+  return localStorage.getItem("taskyard-theme") || "dark";
+});
+
+const toggleTheme = () => {
+  setTheme((currentTheme) => {
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    localStorage.setItem("taskyard-theme", newTheme);
+    return newTheme;
+  });
+};
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [filter, setFilter] = useState("all");
@@ -297,9 +307,7 @@ const upcomingTasks = safeTasks.filter((task) => {
     localStorage.setItem("taskyard-theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
-  };
+  
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -372,6 +380,13 @@ const upcomingTasks = safeTasks.filter((task) => {
             <button className="ty-logout-button" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
               {theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode"}
             </button>
+            <button
+  type="button"
+  className="ty-logout-button"
+  onClick={toggleTheme}
+>
+  {theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode"}
+</button>
             <button className="ty-logout-button" onClick={logout}>Log out ↗</button>
           </div>
         </header>

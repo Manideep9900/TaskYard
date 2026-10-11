@@ -2674,3 +2674,204 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   .ty-dashboard, .ty-theme-toggle { transition: none; }
 }
+/* ===== TaskYard Dark Mode: Form Fix ===== */
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel .ty-task-form-wrap,
+.ty-dashboard[data-theme="dark"] .ty-create-panel form {
+  background: #182832 !important;
+  color: #edf5fa !important;
+  border-color: #304651 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel label {
+  color: #dce8ef !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea,
+.ty-dashboard[data-theme="dark"] .ty-create-panel select {
+  background-color: #102029 !important;
+  color: #edf5fa !important;
+  border-color: #344c59 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input::placeholder,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea::placeholder {
+  color: #8ba5b5 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel option {
+  background: #182832;
+  color: #edf5fa;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel button[type="submit"] {
+  color: #ffffff;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel h2,
+.ty-dashboard[data-theme="dark"] .ty-create-panel p {
+  color: #edf5fa;
+}/* ===== TaskYard Dark Mode: Form Fix ===== */
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel .ty-task-form-wrap,
+.ty-dashboard[data-theme="dark"] .ty-create-panel form {
+  background: #182832 !important;
+  color: #edf5fa !important;
+  border-color: #304651 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel label {
+  color: #dce8ef !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea,
+.ty-dashboard[data-theme="dark"] .ty-create-panel select {
+  background-color: #102029 !important;
+  color: #edf5fa !important;
+  border-color: #344c59 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input::placeholder,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea::placeholder {
+  color: #8ba5b5 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel option {
+  background: #182832;
+  color: #edf5fa;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel button[type="submit"] {
+  color: #ffffff;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel h2,
+.ty-dashboard[data-theme="dark"] .ty-create-panel p {
+  color: #edf5fa;
+}/* ===== TaskYard Dark Mode: Form Fix ===== */
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel .ty-task-form-wrap,
+.ty-dashboard[data-theme="dark"] .ty-create-panel form {
+  background: #182832 !important;
+  color: #edf5fa !important;
+  border-color: #304651 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel label {
+  color: #dce8ef !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea,
+.ty-dashboard[data-theme="dark"] .ty-create-panel select {
+  background-color: #102029 !important;
+  color: #edf5fa !important;
+  border-color: #344c59 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input::placeholder,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea::placeholder {
+  color: #8ba5b5 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel option {
+  background: #182832;
+  color: #edf5fa;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel button[type="submit"] {
+  color: #ffffff;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel h2,
+.ty-dashboard[data-theme="dark"] .ty-create-panel p {
+  color: #edf5fa;
+}
+.ty-dashboard[data-theme="dark"] .ty-create-panel .ty-task-form-wrap,
+.ty-dashboard[data-theme="dark"] .ty-create-panel form {
+  background: #182832 !important;
+  color: #edf5fa !important;
+  border-color: #304651 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel label {
+  color: #dce8ef !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea,
+.ty-dashboard[data-theme="dark"] .ty-create-panel select {
+  background-color: #102029 !important;
+  color: #edf5fa !important;
+  border-color: #344c59 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel input::placeholder,
+.ty-dashboard[data-theme="dark"] .ty-create-panel textarea::placeholder {
+  color: #8ba5b5 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel option {
+  background: #182832;
+  color: #edf5fa;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel button[type="submit"] {
+  color: #ffffff;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-create-panel h2,
+.ty-dashboard[data-theme="dark"] .ty-create-panel p {
+  color: #edf5fa;
+}
+/* ===== TaskYard: Fix Task Form in Dark Mode ===== */
+
+.ty-dashboard[data-theme="dark"] .task-form-container {
+  background: #182832 !important;
+  color: #edf5fa !important;
+  border: 1px solid #304651 !important;
+  box-shadow: none !important;
+}
+
+.ty-dashboard[data-theme="dark"] .task-form-heading h2,
+.ty-dashboard[data-theme="dark"] .task-form-heading p,
+.ty-dashboard[data-theme="dark"] .task-form-field label {
+  color: #edf5fa !important;
+}
+
+.ty-dashboard[data-theme="dark"] .task-form {
+  background: transparent !important;
+  color: #edf5fa !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ty-dashboard[data-theme="dark"] .task-form input,
+.ty-dashboard[data-theme="dark"] .task-form textarea,
+.ty-dashboard[data-theme="dark"] .task-form select {
+  background-color: #102029 !important;
+  color: #edf5fa !important;
+  border: 1px solid #344c59 !important;
+}
+
+.ty-dashboard[data-theme="dark"] .task-form input::placeholder,
+.ty-dashboard[data-theme="dark"] .task-form textarea::placeholder {
+  color: #8ba5b5 !important;
+  opacity: 1;
+}
+
+.ty-dashboard[data-theme="dark"] .task-form select option {
+  background-color: #182832;
+  color: #edf5fa;
+}
+
+.ty-dashboard[data-theme="dark"] .task-submit-button {
+  color: #ffffff !important;
+}
+
+.ty-dashboard[data-theme="dark"] .task-form-icon {
+  background: #203f47 !important;
+  color: #80e8e5 !important;
+}

@@ -30,6 +30,7 @@ function App() {
   return savedUser ? JSON.parse(savedUser) : null;
 });
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState(() => localStorage.getItem("taskyard-theme") || "light");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [filter, setFilter] = useState("all");
@@ -50,7 +51,13 @@ function App() {
 
   apiRequest("/tasks")
     .then((data) => {
-      setTasks(data);
+      // The API may return an array directly or an object containing tasks.
+      const receivedTasks = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.tasks)
+          ? data.tasks
+          : [];
+      setTasks(receivedTasks);
     })
     .catch((error) => {
       setError(error.message);
@@ -81,7 +88,10 @@ function App() {
       }),
     });
 
-    setTasks((previousTasks) => [...previousTasks, newTask]);
+    setTasks((previousTasks) => [
+      ...(Array.isArray(previousTasks) ? previousTasks : []),
+      newTask,
+    ]);
 
     showSuccessMessage("Task added successfully!");
   } catch (error) {
@@ -107,7 +117,7 @@ function App() {
       });
 
       setTasks((previousTasks) =>
-        previousTasks.map((item) =>
+        (Array.isArray(previousTasks) ? previousTasks : []).map((item) =>
           item.id === updatedTask.id ? updatedTask : item
         )
       );
@@ -127,7 +137,7 @@ function App() {
       await apiRequest(`/tasks/${id}`, { method: "DELETE" });
 
       setTasks((previousTasks) =>
-        previousTasks.filter((task) => task.id !== id)
+        (Array.isArray(previousTasks) ? previousTasks : []).filter((task) => task.id !== id)
       );
       showSuccessMessage("Task deleted successfully!");
     } catch (error) {
@@ -156,7 +166,7 @@ function App() {
       });
 
       setTasks((previousTasks) =>
-        previousTasks.map((item) =>
+        (Array.isArray(previousTasks) ? previousTasks : []).map((item) =>
           item.id === updatedTask.id ? updatedTask : item
         )
       );
@@ -168,7 +178,10 @@ function App() {
     }
   };
 
-  const filteredTasks = tasks.filter((task) => {
+  // Keep all dashboard calculations safe if the API ever returns null or malformed data.
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+
+  const filteredTasks = safeTasks.filter((task) => {
     if (filter === "active") {
       return !task.completed;
     }
@@ -180,7 +193,7 @@ function App() {
     return true;
   });
 
-  const categoryFilteredTasks = filteredTasks.filter((task) => {
+  const categoryFilteredTasks = (filteredTasks || []).filter((task) => {
   if (categoryFilter === "all") {
     return true;
   }
@@ -249,21 +262,21 @@ const sortedTasks = [...tasksToSort].sort((a, b) => {
   return b.id - a.id;
 });
 
-  const totalTasks = tasks.length;
+  const totalTasks = safeTasks.length;
 
-  const completedTasks = tasks.filter(
+  const completedTasks = safeTasks.filter(
     (task) => task.completed
   ).length;
 
-  const activeTasks = tasks.filter(
+  const activeTasks = safeTasks.filter(
     (task) => !task.completed
   ).length;
 
-  const highPriorityTasks = tasks.filter(
+  const highPriorityTasks = safeTasks.filter(
   (task) => task.priority === "high"
 ).length;
 
-const upcomingTasks = tasks.filter((task) => {
+const upcomingTasks = safeTasks.filter((task) => {
   if (!task.due_date || task.completed) {
     return false;
   }
@@ -279,6 +292,14 @@ const upcomingTasks = tasks.filter((task) => {
 
   return daysUntilDue >= 0 && daysUntilDue <= 3;
 }).length;
+
+  useEffect(() => {
+    localStorage.setItem("taskyard-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -305,7 +326,7 @@ const upcomingTasks = tasks.filter((task) => {
   }
 
   const completionPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-  const overdueTasks = tasks.filter((task) => {
+  const overdueTasks = safeTasks.filter((task) => {
     if (!task.due_date || task.completed) return false;
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const due = new Date(task.due_date); due.setHours(0, 0, 0, 0);
@@ -322,7 +343,7 @@ const upcomingTasks = tasks.filter((task) => {
   };
 
   return (
-    <div className="app ty-dashboard">
+    <div className="app ty-dashboard" data-theme={theme}>
       <aside className="ty-sidebar">
         <a className="ty-brand" href="#dashboard" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
           <span className="ty-brand-mark">✓</span>
@@ -346,7 +367,13 @@ const upcomingTasks = tasks.filter((task) => {
         {successMessage && <div className="success-notification" role="status">✓ &nbsp;{successMessage}</div>}
         <header className="ty-topbar">
           <div><p className="ty-eyebrow">YOUR PERSONAL WORKSPACE</p><h1>Good to see you, {user.name?.split(" ")[0] || "there"} <span>✦</span></h1><p className="ty-subtitle">Here's what's happening with your tasks today.</p></div>
-          <div className="ty-topbar-actions"><span className="ty-date">◷ &nbsp;{new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</span><button className="ty-logout-button" onClick={logout}>Log out ↗</button></div>
+          <div className="ty-topbar-actions">
+            <span className="ty-date">◷ &nbsp;{new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</span>
+            <button className="ty-logout-button" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
+              {theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode"}
+            </button>
+            <button className="ty-logout-button" onClick={logout}>Log out ↗</button>
+          </div>
         </header>
 
         {error && <p className="error-message ty-error">{error}</p>}
@@ -376,7 +403,7 @@ const upcomingTasks = tasks.filter((task) => {
             <div className="ty-filter-row"><div className="ty-filter-block"><span className="ty-filter-label">STATUS</span><div className="ty-filter-buttons"><button className={filter === "all" ? "selected" : ""} onClick={() => setFilter("all")}>All tasks</button><button className={filter === "active" ? "selected" : ""} onClick={() => setFilter("active")}>Active</button><button className={filter === "completed" ? "selected" : ""} onClick={() => setFilter("completed")}>Completed</button></div></div><div className="ty-filter-block"><label className="ty-filter-label" htmlFor="ty-category">CATEGORY</label><select id="ty-category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">All categories</option><option value="Personal">Personal</option><option value="College">College</option><option value="Work">Work</option><option value="Project">Project</option></select></div><div className="ty-filter-block ty-sort-block"><label className="ty-filter-label" htmlFor="sortTasks">SORT BY</label><select id="sortTasks" value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="newest">Newest first</option><option value="priority">Priority: high to low</option><option value="dueDate">Due date: earliest</option></select></div></div>
             {(showUpcomingOnly || showOverdueOnly) && <div className="ty-active-filter-note">Showing {showUpcomingOnly ? "upcoming tasks due within 3 days" : "overdue tasks"}. <button onClick={() => { setShowUpcomingOnly(false); setShowOverdueOnly(false); }}>Clear filter</button></div>}
           </div>
-          {loading ? <div className="ty-empty-state"><span>◷</span><h3>Loading tasks</h3><p>Your workspace is getting ready.</p></div> : sortedTasks.length === 0 ? <div className="ty-empty-state"><span>{tasks.length ? "⌕" : "✦"}</span><h3>{tasks.length ? "No tasks match these filters" : "A fresh start"}</h3><p>{tasks.length ? "Try another search or reset your filters." : "Create your first task above and start building momentum."}</p>{tasks.length > 0 && <button className="ty-secondary-button" onClick={() => { setFilter("all"); setCategoryFilter("all"); setSearch(""); setShowUpcomingOnly(false); setShowOverdueOnly(false); }}>Clear filters</button>}</div> : <div className="ty-task-list-wrap"><TaskList tasks={sortedTasks} onComplete={completeTask} onDelete={deleteTask} onUpdate={updateTask} /></div>}
+          {loading ? <div className="ty-empty-state"><span>◷</span><h3>Loading tasks</h3><p>Your workspace is getting ready.</p></div> : sortedTasks.length === 0 ? <div className="ty-empty-state"><span>{safeTasks.length ? "⌕" : "✦"}</span><h3>{safeTasks.length ? "No tasks match these filters" : "A fresh start"}</h3><p>{safeTasks.length ? "Try another search or reset your filters." : "Create your first task above and start building momentum."}</p>{safeTasks.length > 0 && <button className="ty-secondary-button" onClick={() => { setFilter("all"); setCategoryFilter("all"); setSearch(""); setShowUpcomingOnly(false); setShowOverdueOnly(false); }}>Clear filters</button>}</div> : <div className="ty-task-list-wrap"><TaskList tasks={sortedTasks} onComplete={completeTask} onDelete={deleteTask} onUpdate={updateTask} /></div>}
         </section>
         <footer className="ty-footer"><span className="ty-brand-mark ty-footer-mark">✓</span><span><strong>TaskYard</strong> · Make room for what matters.</span><span className="ty-footer-right">One task at a time ✦</span></footer>
       </main>

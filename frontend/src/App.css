@@ -2875,3 +2875,423 @@ textarea {
   background: #203f47 !important;
   color: #80e8e5 !important;
 }
+/* =========================================================
+   TASKYARD — Kanban board, view toggle and task-form width fix
+   PASTE THIS AT THE VERY END OF App.css
+   ========================================================= */
+
+/* ---------- Task form: give Priority / Category room ---------- */
+.task-form-container > .task-form {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-template-areas: none !important;
+  grid-template-rows: none !important;
+  gap: 18px !important;
+}
+
+.task-form-container > .task-form > .task-form-main,
+.task-form-container > .task-form > .task-form-options {
+  grid-area: auto !important;
+}
+
+.task-form-container > .task-form > .task-submit-button {
+  grid-area: auto !important;
+  grid-column: 1 / -1 !important;
+}
+
+.task-form-field select {
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 760px) {
+  .task-form-container > .task-form {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* ---------- List / Board toggle ---------- */
+.ty-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ty-view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #dce7ec;
+  border-radius: 11px;
+  background: #f1f6f8;
+}
+
+.ty-view-toggle button {
+  min-height: 32px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #648089;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.ty-view-toggle button:hover {
+  color: #087785;
+}
+
+.ty-view-toggle button.selected {
+  background: #fff;
+  color: #087785;
+  box-shadow: 0 2px 6px rgba(31, 68, 84, 0.1);
+}
+
+/* ---------- Board controls ---------- */
+.ty-board-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ty-board-controls .ty-search {
+  flex: 1 1 260px;
+}
+
+/* ---------- Kanban board ---------- */
+.ty-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.ty-board-column {
+  display: flex;
+  min-height: 280px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e1ebef;
+  border-radius: 16px;
+  background: #f5f9fa;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.ty-board-column.is-over {
+  border-color: #138b97;
+  background: #e6f5f5;
+}
+
+.ty-board-column-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 4px 8px;
+}
+
+.ty-board-column-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #24424f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ty-board-column-head small {
+  display: block;
+  margin-top: 3px;
+  color: #8aa0aa;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ty-board-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #8174e8;
+}
+
+.ty-board-column[data-status="in_progress"] .ty-board-dot {
+  background: #3d9bc2;
+}
+
+.ty-board-column[data-status="done"] .ty-board-dot {
+  background: #39b68d;
+}
+
+.ty-board-count {
+  display: inline-grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0 7px;
+  border-radius: 8px;
+  background: #e6f0f3;
+  color: #4d7280;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ty-board-empty {
+  display: grid;
+  min-height: 90px;
+  place-items: center;
+  margin: 0;
+  border: 1px dashed #c9dbe1;
+  border-radius: 12px;
+  color: #8aa0aa;
+  font-size: 12px;
+}
+
+/* ---------- Board cards ---------- */
+.ty-board-card {
+  padding: 13px;
+  border: 1px solid #e0ebef;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(31, 68, 84, 0.045);
+}
+
+.ty-board-card.is-dragging {
+  opacity: 0.35;
+}
+
+.ty-board-card-overlay {
+  cursor: grabbing;
+  box-shadow: 0 18px 38px rgba(31, 68, 84, 0.22);
+  transform: rotate(1.5deg);
+}
+
+.ty-board-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ty-board-card-top h4 {
+  flex: 1;
+  margin: 0;
+  color: #193d50;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.ty-board-card-top h4.completed {
+  color: #8ba0a9;
+  text-decoration: line-through;
+}
+
+.ty-drag-handle {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  place-items: center;
+  border: 1px solid #e1ebef;
+  border-radius: 8px;
+  background: #f6fafb;
+  color: #7e98a3;
+  font-size: 14px;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.ty-drag-handle:hover {
+  border-color: #9dd5d8;
+  color: #087785;
+}
+
+.ty-drag-handle:active {
+  cursor: grabbing;
+}
+
+.ty-board-card-desc {
+  display: -webkit-box;
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: #7f95a1;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ty-board-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ty-board-card-meta .priority,
+.ty-board-card-meta .category,
+.ty-board-card-meta .due-date {
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.ty-board-card-meta .due-date {
+  background: #f0f5f7;
+  color: #617d8a;
+}
+
+.ty-board-card-meta .due-date.due-date-overdue {
+  background: #fff0ec;
+  color: #bb493c;
+}
+
+.ty-board-move {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid #edf2f4;
+  color: #8aa0aa;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ty-board-move select {
+  min-height: 28px;
+  padding: 3px 24px 3px 8px;
+  border: 1px solid #dfe8ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #54717e;
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .ty-board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ty-board-column {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .ty-heading-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ---------- Dark mode ---------- */
+.ty-dashboard[data-theme="dark"] .ty-view-toggle {
+  border-color: #38515d;
+  background: #14232c;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-view-toggle button {
+  color: #a9bdc6;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-view-toggle button.selected {
+  background: #25444b;
+  color: #8ce0df;
+  box-shadow: none;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-column {
+  border-color: #304650;
+  background: #14232c;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-column.is-over {
+  border-color: #3fb7b9;
+  background: #1a3a40;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-column-head h3 {
+  color: #e5f0f3;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-column-head small,
+.ty-dashboard[data-theme="dark"] .ty-board-empty,
+.ty-dashboard[data-theme="dark"] .ty-board-move {
+  color: #8ba5b0;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-count {
+  background: #203e46;
+  color: #8ed8d7;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-empty {
+  border-color: #38515d;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card {
+  border-color: #304650;
+  background: #1a2b35;
+  box-shadow: none;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card-overlay {
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card-top h4 {
+  color: #e1edf1;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card-top h4.completed {
+  color: #7f98a3;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card-desc {
+  color: #a0b5bf;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-drag-handle {
+  border-color: #3a535e;
+  background: #253d48;
+  color: #b8d4de;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card-meta .category {
+  background: #203b4b;
+  color: #9fd6ea;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card-meta .due-date {
+  background: #253d48;
+  color: #b8d4de;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-card-meta .due-date.due-date-overdue {
+  background: #432a30;
+  color: #ffb4b4;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-move {
+  border-top-color: #304650;
+}
+
+.ty-dashboard[data-theme="dark"] .ty-board-move select {
+  border-color: #38515d;
+  background: #13212a;
+  color: #e5f0f3;
+}

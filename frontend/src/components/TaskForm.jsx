@@ -97,9 +97,9 @@ function TaskForm({ onAddTask }) {
               onChange={(event) => setPriority(event.target.value)}
               disabled={isSubmitting}
             >
-              <option value="low">Low priority</option>
-              <option value="medium">Medium priority</option>
-              <option value="high">High priority</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
             </select>
           </div>
 

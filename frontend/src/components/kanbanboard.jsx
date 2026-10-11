@@ -11,7 +11,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { BOARD_COLUMNS, getTaskStatus } from "../taskStatus";
+import { BOARD_COLUMNS, getTaskStatus } from "../taskstatus";
 
 const PRIORITY_ORDER = { high: 1, medium: 2, low: 3 };
 

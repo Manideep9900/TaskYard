@@ -41,6 +41,7 @@ Built with React, Node.js, Express and PostgreSQL.
 
 ## Project Structure
 
+```
 TaskYard/
 ├── backend/
 │ ├── routes/
@@ -71,6 +72,7 @@ TaskYard/
 │ └── .env.example
 │
 └── README.md
+```
 
 ## Database
 

@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
-import KanbanBoard from "./components/KanbanBoard";
+import KanbanBoard from "./components/kanbanboard";
 import Auth from "./components/Auth";
 import { apiRequest } from "./api";
-import { getTaskStatus } from "./taskStatus";
+import { getTaskStatus } from "./taskstatus";
 
 function App() {
   const tasksSectionRef = useRef(null);

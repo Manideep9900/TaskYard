@@ -8,27 +8,18 @@ Built with React, Node.js, Express and PostgreSQL.
 
 > ⏳ **Note:** the backend runs on Render's free tier, so it sleeps when idle. The first request can take **30-60 seconds** to wake it up. After that it responds normally.
 
-## Features
+Features
 
-**Authentication:** register and log in with JWT; passwords are hashed with bcrypt; each user sees only their own tasks
-
-**Kanban board:** drag tasks between To do, In progress and Done (also works with touch, keyboard and a "Move to" menu)
-
-**Task management:** create, edit, complete and delete tasks
-
-**Priorities and categories:** low, medium or high priority; Personal, College, Work or Project
-
-**Due dates:** upcoming (next 3 days) and overdue views
-
-**Search, filter and sort** by status, category, priority or due date
-
-**Dashboard:** totals, in-progress and overdue counts, and a completion ring
-
-**Light and dark mode**, saved between visits
-
-**Responsive layout** for desktop and mobile
-
-**Validation and error handling** on both frontend and backend
+Authentication: register and log in with JWT; passwords are hashed with bcrypt; each user sees only their own tasks
+Kanban board: drag tasks between To do, In progress and Done (also works with touch, keyboard and a "Move to" menu)
+Task management: create, edit, complete and delete tasks
+Priorities and categories: low, medium or high priority; Personal, College, Work or Project
+Due dates: upcoming (next 3 days) and overdue views
+Search, filter and sort by status, category, priority or due date
+Dashboard: totals, in-progress and overdue counts, and a completion ring
+Light and dark mode, saved between visits
+Responsive layout for desktop and mobile
+Validation and error handling on both frontend and backend
 
 ## Tech Stack
 
@@ -186,8 +177,8 @@ Open `http://localhost:5173`.
 
 ## Roadmap
 
-- [x] Authentication
-- [x] Kanban board with drag-and-drop
+- [ ] Authentication
+- [ ] Kanban board with drag-and-drop
 - [ ] Automated tests (Jest and Supertest)
 - [ ] Pagination and server-side sorting
 - [ ] TypeScript migration

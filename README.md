@@ -1,4 +1,4 @@
-# 🚀 TaskYard — Modern Full-Stack Task & Workflow Management
+# TaskYard — Modern Full-Stack Task & Workflow Management
 
 **TaskYard** is a modern, high-performance task and workflow management platform designed for distraction-free execution. Built with **React 19**, **Vite**, **Express 5**, and **PostgreSQL (Neon)**, it combines an interactive Kanban board, automated AI task labeling, persistent database image attachments, atomic monthly usage quotas, and Stripe subscription billing.
 
@@ -7,9 +7,9 @@
 
 ---
 
-## ✨ Features & Architecture
+## Features & Architecture
 
-### 🎨 1. Modern Design & User Experience
+### 1. Modern Design & User Experience
 - **Airy Ambient Canvas:** Soft off-white background (`#fafbfc`) with a subtle dot-grid canvas and pastel ambient lighting accents (Yellow `#fef08a`, Pink `#fbcfe8`, Blue `#93c5fd`, Green `#bbf7d0`).
 - **Glassmorphic Navigation Bar:** Sticky top navigation with brand layers, active task count badges, user avatar, and a quick-action `+ New task` pill.
 - **Productivity Metrics Grid:** Real-time workspace analytics displaying total tracked tasks, active in-progress items, completion percentage, and overdue deadline alerts.
@@ -18,20 +18,20 @@
 - **Drag-and-Drop Kanban Board:** Built with `@dnd-kit/core`, supporting mouse, touch, and keyboard interactions with automated status-to-completed database synchronization.
 - **High-Contrast Typography & Pastel Tags:** Accessible contrast (exceeding 4.5:1) for priority badges, categories, and AI labels across list and Kanban board views.
 
-### 🔐 2. Authentication & Security
+### 2. Authentication & Security
 - **Dual Sign-In:** Register and log in using standard email/password or one-click **Google OAuth 2.0**.
 - **Cryptographic Security:** Passwords hashed with `bcrypt`; stateless session management with JWT tokens.
 - **Row-Level User Isolation:** Every database operation is strictly scoped to `req.user.id`.
 - **Verified Identity:** Google OAuth strictly requires verified email (`email_verified: true`) and prevents unconfigured bypasses.
 - **Password Visibility Toggle:** Show/hide password button inside credential inputs.
 
-### 🤖 3. AI-Powered Auto-Labeling (OpenAI & Groq)
+###  3. AI-Powered Auto-Labeling (OpenAI & Groq)
 - **Multi-Provider Support:** Uses **OpenAI** (`gpt-4o-mini`) as the primary labeling engine with seamless fallback to **Groq** (`llama-3.3-70b-versatile`) via its OpenAI-compatible endpoint.
 - **Contextual Categorization:** Automatically scans task titles and descriptions to assign smart classification tags (e.g., `career`, `urgency`, `meeting`, `finance`, `bug`).
 - **One-Click Regeneration:** Regenerate labels anytime from the Task Detail view.
 - **Resilient Fallback:** Automatically defaults to an intelligent keyword-based heuristic fallback (`heuristicLabels()`) if API keys are missing or provider requests fail.
 
-### 📎 4. Persistent PostgreSQL BYTEA Image Storage
+###  4. Persistent PostgreSQL BYTEA Image Storage
 - **Direct Database Persistence:** Images are stored directly in PostgreSQL (`BYTEA` column in `task_images`), eliminating reliance on ephemeral server disks that get wiped on deploy/restart.
 - **Validated Memory Uploads:** Multer memory storage with a strict **1MB limit** and MIME-type validation (`image/jpeg`, `image/png`, `image/gif`, `image/webp`).
 - **Authenticated Streaming Route:** `GET /tasks/:id/image` streams images securely with `Content-Type` headers and client caching.
@@ -39,7 +39,7 @@
 - **Automated Cascade Deletion:** Foreign key constraints (`ON DELETE CASCADE`) guarantee that deleting a task automatically cleans up its image data.
 - **Single-Query Image Removal:** `DELETE /tasks/:id/image` uses a single ownership-checked statement without redundant table updates.
 
-### 📊 5. Atomic Monthly Quota Enforcement
+###  5. Atomic Monthly Quota Enforcement
 - **Plan Limits:**
   - **Free Starter Plan:** 100 new tasks created per month.
   - **Pro Plan:** 10,000 new tasks created per month.
@@ -47,7 +47,7 @@
 - **Automatic Rollover:** Tracks `tasks_created_this_month` and resets on monthly rollover timestamp (`month_reset_at`).
 - **Frontend Quota Alerts:** Clear limit-reached banners guiding users directly to upgrade.
 
-### 💳 6. Stripe Subscriptions & Webhook Automation
+###  6. Stripe Subscriptions & Webhook Automation
 - **Stripe Checkout Integration:** Creates checkout sessions linked to users via `client_reference_id` and reusable `stripe_customer_id`.
 - **Active Subscription Verification:** Verifies customer subscription status in Stripe before refusing checkout to handle stale local plan states.
 - **Cryptographic Webhook Verification:** `POST /webhook/stripe` registered with `express.raw({ type: "application/json" })` before `express.json()` to verify signatures via `stripe.webhooks.constructEvent`.
@@ -60,7 +60,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technologies |
 |---|---|
@@ -71,7 +71,7 @@
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 TaskYard/
@@ -120,7 +120,7 @@ TaskYard/
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ```sql
 -- Users Table
@@ -167,7 +167,7 @@ CREATE TABLE task_images (
 
 ---
 
-## 🔌 API Endpoints Reference
+##  API Endpoints Reference
 
 ### Authentication (`/auth`)
 | Method | Endpoint | Auth Required | Description |
@@ -198,7 +198,7 @@ CREATE TABLE task_images (
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js 18+ installed
@@ -285,7 +285,7 @@ Copy the printed `whsec_...` into `backend/.env` as `STRIPE_WEBHOOK_SECRET` and 
 
 ---
 
-## 👥 Author
+##  Author
 
 **Manideep**
 - GitHub: [@Manideep9900](https://github.com/Manideep9900)

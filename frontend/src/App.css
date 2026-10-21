@@ -1385,6 +1385,26 @@ kbd, .ty-kbd {
   color: var(--pk-yellow-text);
 }
 
+.ty-profile-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+.ty-usage-fraction {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pk-text-muted);
+}
+
+.ty-usage-fraction strong {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--pk-text-ink);
+  letter-spacing: -0.02em;
+}
+
 .ty-usage-bar-track {
   width: 100%;
   height: 8px;
@@ -1399,6 +1419,26 @@ kbd, .ty-kbd {
   background: var(--pk-black-btn);
   border-radius: inherit;
   transition: width 0.4s ease;
+}
+
+.ty-usage-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--pk-text-muted);
+  margin-top: 8px;
+}
+
+.ty-usage-footer small {
+  font-size: 12px;
+  color: var(--pk-text-muted);
+}
+
+.ty-usage-percent-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pk-text-ink);
 }
 
 /* Pricing Grid (Dual Cards from Screenshot 5) */

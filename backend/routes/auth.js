@@ -235,6 +235,21 @@ router.get("/profile", authMiddleware, async (req, res) => {
       tasksCreated = 0;
     }
 
+    // Self-healing: ensure tasks_created reflects at least the user's existing tasks
+    const taskCountResult = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM tasks WHERE user_id = $1",
+      [req.user.id]
+    );
+    const existingTaskCount = taskCountResult.rows[0]?.count || 0;
+
+    if (tasksCreated < existingTaskCount) {
+      tasksCreated = existingTaskCount;
+      await pool.query(
+        "UPDATE users SET tasks_created_this_month = $1 WHERE id = $2",
+        [tasksCreated, req.user.id]
+      );
+    }
+
     const limit = user.plan === "premium" ? 10000 : 100;
 
     res.json({

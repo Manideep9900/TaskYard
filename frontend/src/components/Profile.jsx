@@ -138,12 +138,12 @@ function Profile({ user, onLogout }) {
 
         {error && <p className="error-message ty-error">{error}</p>}
 
-        {/* Top Guarantee Banner (Screenshot 5) */}
+        {/* Top Plan Info Banner */}
         <div className="ty-peeky-banner">
-          <span className="ty-banner-lock-icon">🔒</span>
+          <span className="ty-banner-lock-icon">⚡</span>
           <div className="ty-banner-copy">
-            <strong>When the month ends, nothing is taken away</strong>
-            <p>Your tasks stay visible, searchable, copyable and exportable — forever. Upgrading unlocks 10,000 tasks/mo, AI labeling, and full PostgreSQL BYTEA image storage.</p>
+            <strong>TaskYard Plans & Quotas</strong>
+            <p>Every account includes monthly task allowances and full workspace access. Upgrade to Pro whenever you need higher capacity and AI-powered automation.</p>
           </div>
         </div>
 
@@ -169,7 +169,7 @@ function Profile({ user, onLogout }) {
               <div className="ty-profile-name-row">
                 <h1>{profile?.name || "Your Account"}</h1>
                 <span className={`ty-plan-badge ty-plan-${profile?.plan || "free"}`}>
-                  {profile?.plan === "premium" ? "⭐ Premium Plan" : "Free Plan"}
+                  {profile?.plan === "premium" ? "⭐ Pro Plan" : "Free Plan"}
                 </span>
               </div>
               <p className="ty-profile-email">{profile?.email}</p>
@@ -199,8 +199,8 @@ function Profile({ user, onLogout }) {
           <div className="ty-usage-footer">
             <small>
               {profile?.plan === "free"
-                ? "Free plan gives you 100 tasks each month."
-                : "Premium plan gives you 10,000 tasks each month."}
+                ? "Free plan includes 100 task creations each month."
+                : "Pro plan includes 10,000 task creations each month."}
             </small>
             <span className="ty-usage-percent-text">{usagePercent}% used</span>
           </div>
@@ -246,48 +246,31 @@ function Profile({ user, onLogout }) {
                     onClick={handleManageBilling}
                     disabled={Boolean(actionLoading)}
                   >
-                    Downgrade in Portal ↗
+                    Manage in Stripe ↗
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Pro Plan Card (Screenshot 5 Dark Card) */}
+            {/* Pro Plan Card */}
             <div className={`ty-pricing-card ty-pricing-pro ${profile?.plan === "premium" ? "is-current" : ""}`}>
               <div className="ty-pricing-card-top">
-                <span className="ty-pricing-tag-sub">Personal</span>
+                <span className="ty-pricing-pill ty-pill-yellow">PRO</span>
+                <h3 className="ty-pricing-title">TaskYard Pro</h3>
                 <div className="ty-pricing-cost">
                   <span className="ty-price-amount">$9.99</span>
-                  <span className="ty-price-original">$19.99</span>
+                  <span className="ty-price-period">/ month</span>
                 </div>
-                <div className="ty-pricing-badge-row">
-                  <span className="ty-pricing-pill ty-pill-yellow">⚡ Launch price - save 50%</span>
-                </div>
-                <p className="ty-pricing-sub">once, yours for good each month</p>
-                <p className="ty-pricing-tagline">
-                  One subscription for your personal workflow on all devices.
-                </p>
+                <p className="ty-pricing-sub">For professionals and heavy project workflows</p>
               </div>
 
               <ul className="ty-pricing-features">
                 <li><span className="ty-feature-check">✓</span> <strong>10,000 tasks per month</strong> quota</li>
                 <li><span className="ty-feature-check">✓</span> Instant AI task labels via Groq & OpenAI</li>
                 <li><span className="ty-feature-check">✓</span> PostgreSQL BYTEA image storage & preview</li>
-                <li><span className="ty-feature-check">✓</span> Self-service Stripe billing portal</li>
-                <li><span className="ty-feature-check">✓</span> Automatic clean-up & zero bloat</li>
+                <li><span className="ty-feature-check">✓</span> Drag & Drop Kanban board with status syncing</li>
+                <li><span className="ty-feature-check">✓</span> Manage or cancel anytime via Stripe portal</li>
               </ul>
-
-              {/* Launch Seats Bar (Screenshot 5) */}
-              <div className="ty-launch-seats-box">
-                <div className="ty-launch-seats-label">
-                  <strong>27 of 50 launch seats left</strong>
-                  <span>23 claimed</span>
-                </div>
-                <div className="ty-launch-seats-dots" aria-hidden="true">
-                  <div className="ty-seats-bar-fill" style={{ width: "46%" }} />
-                </div>
-                <small className="ty-launch-seats-note">Then $19.99 for everyone after.</small>
-              </div>
 
               <div className="ty-pricing-action">
                 {profile?.plan === "premium" ? (
@@ -306,7 +289,7 @@ function Profile({ user, onLogout }) {
                     onClick={handleUpgrade}
                     disabled={Boolean(actionLoading)}
                   >
-                    {actionLoading === "upgrade" ? "Redirecting to Stripe…" : "Claim Launch Seat · $9.99/mo"}
+                    {actionLoading === "upgrade" ? "Redirecting to Stripe…" : "Upgrade to Pro · $9.99/mo"}
                   </button>
                 )}
               </div>

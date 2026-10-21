@@ -1009,6 +1009,7 @@ kbd, .ty-kbd {
 
 /* Pastel tags and badges */
 .task-card-meta > span,
+.ty-board-card-meta > span,
 .task-ai-label-pill,
 .task-ai-label,
 .ty-count-pill,
@@ -1189,138 +1190,70 @@ kbd, .ty-kbd {
   cursor: grab;
 }
 
-/* ==========================================================================
-   STICKY NOTES COMPONENT (Edge Pills & Floating Note Panel - Screenshot 1 & 3)
-   ========================================================================== */
-.ty-desktop-sticky-container {
-  position: fixed;
-  right: 0;
-  top: 140px;
-  z-index: 999;
-}
-
-/* The Edge Pills: Rounded-left tabs docked at screen edge */
-.ty-edge-pills-rack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px 0;
-}
-
-.ty-edge-pill {
-  width: 14px;
-  height: 44px;
-  border-radius: 8px 0 0 8px;
-  border: none;
-  cursor: pointer;
-  box-shadow: -4px 6px 16px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-}
-
-.ty-edge-pill:hover,
-.ty-edge-pill.active {
-  width: 26px;
-  transform: translateX(-4px);
-  box-shadow: -6px 8px 24px rgba(0, 0, 0, 0.22);
-}
-
-/* The Note Panel: High contrast card with pure black text */
-.ty-note-panel {
-  position: fixed;
-  right: 28px;
-  top: 130px;
-  width: 320px;
-  border-radius: 20px;
-  padding: 18px;
-  color: #000000;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 1px 1px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  animation: noteSlide 0.2s ease;
-  z-index: 1000;
-}
-
-@keyframes noteSlide {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-.ty-note-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.ty-note-color-dots {
-  display: flex;
-  gap: 6px;
-}
-
-.ty-note-color-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-}
-
-.ty-note-color-dot.selected {
-  transform: scale(1.25);
-  box-shadow: 0 0 0 2px #000000;
-}
-
-.ty-note-tag {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.7;
-}
-
-.ty-note-close-btn {
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  opacity: 0.6;
-}
-
-.ty-note-close-btn:hover {
-  opacity: 1;
-}
-
-.ty-note-textarea {
-  width: 100%;
-  height: 150px;
-  border: none;
-  background: transparent;
-  color: #000000;
-  font-family: var(--font-sans);
+/* Kanban Card Content, Labels & Badges */
+.ty-board-card-desc {
   font-size: 13px;
-  font-weight: 600;
-  line-height: 1.6;
-  resize: none;
-  outline: none;
+  color: var(--pk-text-body);
+  margin-top: 6px;
+  line-height: 1.4;
 }
 
-.ty-note-textarea::placeholder {
-  color: rgba(0, 0, 0, 0.45);
+.task-board-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
-.ty-note-footer {
+.task-board-image-wrap {
+  margin-top: 8px;
+}
+
+.task-board-thumb {
+  max-width: 100%;
+  max-height: 100px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--pk-border);
+}
+
+.ty-board-card-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  padding-top: 8px;
-  opacity: 0.7;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
-.ty-note-clear-btn {
+.ty-board-card-meta > span {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
+}
+
+.ty-board-move {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--pk-border-light);
+  font-size: 12px;
+  color: var(--pk-text-muted);
+  font-weight: 600;
+}
+
+.ty-board-move select {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--pk-border);
+  background: #ffffff;
+  color: var(--pk-text-ink);
+  cursor: pointer;
 }
 
 /* ==========================================================================
@@ -1589,51 +1522,6 @@ kbd, .ty-kbd {
   margin-right: 8px;
 }
 
-/* Launch Seats Meter (Screenshot 5) */
-.ty-launch-seats-box {
-  padding: 14px;
-  border-radius: var(--radius-sm);
-  background: #1f2937;
-  border: 1px solid #374151;
-  margin-bottom: 24px;
-}
-
-.ty-launch-seats-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-
-.ty-launch-seats-label strong {
-  color: #ffffff;
-}
-
-.ty-launch-seats-label span {
-  color: #9ca3af;
-}
-
-.ty-launch-seats-dots {
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: #374151;
-  overflow: hidden;
-}
-
-.ty-seats-bar-fill {
-  height: 100%;
-  background: var(--pk-yellow);
-  border-radius: inherit;
-}
-
-.ty-launch-seats-note {
-  display: block;
-  font-size: 10px;
-  color: #9ca3af;
-  margin-top: 6px;
-}
-
 .ty-pricing-btn-current {
   width: 100%;
   padding: 12px;
@@ -1669,6 +1557,36 @@ kbd, .ty-kbd {
   color: var(--pk-yellow-text);
   font-size: 14px;
   font-weight: 800;
+}
+
+/* Account Details List */
+.ty-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.ty-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  border: 1px solid var(--pk-border);
+}
+
+.ty-detail-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pk-text-muted);
+}
+
+.ty-detail-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pk-text-ink);
 }
 
 /* ==========================================================================

@@ -67,11 +67,14 @@ function CardContent({ task, onMove, handle }) {
       )}
 
       <div className="ty-board-card-meta">
-        <span className={`priority priority-${priority}`}>{priority}</span>
+        <span className={`priority priority-${priority}`}>
+          {priority.charAt(0).toUpperCase() + priority.slice(1)}
+        </span>
         {task.category && <span className="category">{task.category}</span>}
         {dueDate && (
           <span className={`due-date ${isOverdue ? "due-date-overdue" : ""}`}>
-            {isOverdue ? "Overdue" : "Due"} {dueDate}
+            {isOverdue ? "Overdue · " : "Due · "}
+            {dueDate}
           </span>
         )}
       </div>

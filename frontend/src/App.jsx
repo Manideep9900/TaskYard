@@ -8,7 +8,6 @@ import Auth from "./components/Auth";
 import Profile from "./components/Profile";
 import TaskDetail from "./components/TaskDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
-import StickyNotesWidget from "./components/StickyNotesWidget";
 import { apiRequest, apiUpload } from "./api";
 import { getTaskStatus } from "./taskstatus";
 
@@ -448,19 +447,19 @@ function Dashboard({
           </div>
         )}
 
-        {/* Hero Section (Screenshot 1) */}
+        {/* Hero Section */}
         <section className="ty-hero-section">
           <div className="ty-hero-pill-badge">
-            <span className="ty-badge-tag">New in 2.0</span>
-            <span className="ty-badge-text">AI labels, BYTEA storage & instant sync</span>
+            <span className="ty-badge-tag">Productivity</span>
+            <span className="ty-badge-text">Task management with Kanban & AI labels</span>
           </div>
 
           <h1 className="ty-hero-title">
-            Task management that lives on the edge of your workflow.
+            Stay organized, prioritize what matters, and get work done.
           </h1>
 
           <p className="ty-hero-subtitle">
-            Capture thoughts and tasks in seconds, organize with AI, and keep moving forward with zero clutter.
+            A fast, distraction-free workspace for your personal to-dos, Kanban project tracking, and AI-assisted categorization.
           </p>
 
           <div className="ty-hero-actions">
@@ -471,10 +470,10 @@ function Dashboard({
                 document.getElementById("task-title")?.focus();
               }}
             >
-              Start adding tasks
+              + Add a new task
             </button>
             <button className="ty-hero-btn-secondary" onClick={openBoard}>
-              See how board works
+              Open Kanban board
             </button>
           </div>
 
@@ -486,32 +485,31 @@ function Dashboard({
               <span className="ty-avatar-dot dot-green" />
             </div>
             <span className="ty-proof-text">
-              <strong>{totalTasks} tasks</strong> in workspace · {user.plan === "premium" ? "⭐ 10,000 monthly quota" : "100 monthly free tasks"} · Synced with Neon DB
+              <strong>{totalTasks} tasks</strong> tracked · {activeTasks} active · {user.plan === "premium" ? "⭐ Pro Plan (10,000 tasks/mo)" : "Free Plan (100 tasks/mo)"}
             </span>
           </div>
         </section>
 
-        {/* Ticker / Feature Ribbon (Screenshot 2) */}
+        {/* Ticker / Feature Ribbon */}
         <div className="ty-ticker-ribbon" aria-hidden="true">
           <div className="ty-ticker-track">
-            <span><i className="dot dot-yellow" /> Instant search</span>
-            <span><i className="dot dot-blue" /> AI label categorization</span>
-            <span><i className="dot dot-pink" /> Drag & drop Kanban</span>
-            <span><i className="dot dot-green" /> PostgreSQL BYTEA attachments</span>
-            <span><i className="dot dot-yellow" /> Atomic monthly quota</span>
-            <span><i className="dot dot-blue" /> Stripe subscriptions</span>
-            <span><i className="dot dot-pink" /> 100% private</span>
-            <span><i className="dot dot-green" /> Zero clutter</span>
+            <span><i className="dot dot-yellow" /> Fast Search (Ctrl + K)</span>
+            <span><i className="dot dot-blue" /> Smart AI Task Labels</span>
+            <span><i className="dot dot-pink" /> Interactive Kanban Board</span>
+            <span><i className="dot dot-green" /> Image Attachments</span>
+            <span><i className="dot dot-yellow" /> Priority & Due Dates</span>
+            <span><i className="dot dot-blue" /> Monthly Usage Tracking</span>
+            <span><i className="dot dot-pink" /> Stripe Subscriptions</span>
+            <span><i className="dot dot-green" /> Distraction Free</span>
           </div>
         </div>
 
-        {/* Metrics Grid Section (Screenshot 4) */}
+        {/* Metrics Grid Section */}
         <section className="ty-metrics-section">
           <div className="ty-section-header-center">
-            <h2 className="ty-metrics-heading">Focused execution, zero lag.</h2>
+            <h2 className="ty-metrics-heading">Real-time productivity overview.</h2>
             <p className="ty-metrics-sub">
-              TaskYard spends most of its time staying out of your way — and that's the point.
-              It stays lightweight, responsive, and ready the moment you need it.
+              Monitor active progress, upcoming deadlines, and task completion velocity across your workspace.
             </p>
           </div>
 
@@ -519,7 +517,7 @@ function Dashboard({
             <div className="ty-metric-card">
               <div className="ty-metric-number">{totalTasks} <span>tasks</span></div>
               <div className="ty-metric-title">Total tracked</div>
-              <p className="ty-metric-desc">Organized across your categories.</p>
+              <p className="ty-metric-desc">Across all your categories.</p>
             </div>
 
             <div className="ty-metric-card">
@@ -530,15 +528,15 @@ function Dashboard({
 
             <div className="ty-metric-card">
               <div className="ty-metric-number">{completionPercent}<span>%</span></div>
-              <div className="ty-metric-title">Completed rate</div>
-              <p className="ty-metric-desc">{completedTasks} finished tasks.</p>
+              <div className="ty-metric-title">Completion rate</div>
+              <p className="ty-metric-desc">{completedTasks} completed so far.</p>
             </div>
 
             <div className="ty-metric-card">
               <div className="ty-metric-number">{overdueTasks > 0 ? overdueTasks : "0"} <span>alerts</span></div>
               <div className="ty-metric-title">Overdue items</div>
               <p className="ty-metric-desc">
-                {overdueTasks > 0 ? "Review tasks past due date." : "You're all caught up!"}
+                {overdueTasks > 0 ? "Tasks that need immediate attention." : "All due dates on schedule!"}
               </p>
             </div>
           </div>
@@ -755,14 +753,11 @@ function Dashboard({
         <footer className="ty-footer">
           <span className="ty-brand-mark ty-footer-mark">✓</span>
           <span>
-            <strong>TaskYard</strong> · Make room for what matters.
+            <strong>TaskYard</strong> · Stay organized, prioritize what matters.
           </span>
-          <span className="ty-footer-right">One task at a time ✦</span>
+          <span className="ty-footer-right">Zero clutter ✦</span>
         </footer>
       </main>
-
-      {/* Sticky Notes & Edge Pill Component */}
-      <StickyNotesWidget />
     </div>
   );
 }

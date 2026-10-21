@@ -81,7 +81,7 @@ async function generateLabels(title, description) {
     const groqKey = process.env.GROQ_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
 
-    if (openaiKey && openaiKey !== "YOUR_OPENAI_API_KEY_HERE") {
+    if (openaiKey && openaiKey !== "YOUR_OPENAI_API_KEY_HERE" && openaiKey.startsWith("sk-")) {
       client = new OpenAI({ apiKey: openaiKey, timeout: 8000 });
       model = process.env.OPENAI_MODEL || "gpt-4o-mini";
     } else if (groqKey && groqKey !== "YOUR_GROQ_API_KEY_HERE") {
@@ -90,29 +90,55 @@ async function generateLabels(title, description) {
         baseURL: "https://api.groq.com/openai/v1",
         timeout: 8000,
       });
-      model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+      model = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
     } else {
       return heuristicLabels(title, description);
     }
 
-    const response = await client.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: "system",
-          content:
-            'You are a helpful task labeling assistant. Given a task title and optional description, return 1-3 short, relevant labels as a JSON array of strings. Labels should be lowercase, 1-2 words each (e.g. ["urgent", "bug fix", "design", "research", "finance", "meeting", "writing"]). Return ONLY the raw JSON array of strings, without markdown backticks or commentary.',
-        },
-        {
-          role: "user",
-          content: `Title: ${title}${description ? `\nDescription: ${description}` : ""}`,
-        },
-      ],
-      max_tokens: 60,
-      temperature: 0.2,
-    });
+    let response;
+    try {
+      response = await client.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content:
+              'You are a helpful task labeling assistant. Given a task title and optional description, return 1-3 short, relevant labels as a JSON array of strings. Labels should be lowercase, 1-2 words each (e.g. ["urgent", "career", "interview", "finance", "meeting", "writing"]). Return ONLY the raw JSON array of strings, without markdown backticks or commentary.',
+          },
+          {
+            role: "user",
+            content: `Title: ${title}${description ? `\nDescription: ${description}` : ""}`,
+          },
+        ],
+        max_tokens: 60,
+        temperature: 0.2,
+      });
+    } catch (apiErr) {
+      // If Groq model returned 404 (e.g. model not available on this account), retry with qwen/qwen3.8-27b
+      if (apiErr.status === 404 && model !== "qwen/qwen3.8-27b" && groqKey) {
+        console.warn(`[AI] Model ${model} not available on Groq, retrying with qwen/qwen3.8-27b`);
+        response = await client.chat.completions.create({
+          model: "qwen/qwen3.8-27b",
+          messages: [
+            {
+              role: "system",
+              content:
+                'You are a helpful task labeling assistant. Given a task title and optional description, return 1-3 short, relevant labels as a JSON array of strings. Labels should be lowercase, 1-2 words each (e.g. ["urgent", "career", "interview", "finance", "meeting", "writing"]). Return ONLY the raw JSON array of strings, without markdown backticks or commentary.',
+            },
+            {
+              role: "user",
+              content: `Title: ${title}${description ? `\nDescription: ${description}` : ""}`,
+            },
+          ],
+          max_tokens: 60,
+          temperature: 0.2,
+        });
+      } else {
+        throw apiErr;
+      }
+    }
 
-    const content = response.choices[0]?.message?.content?.trim() || "";
+    const content = response?.choices[0]?.message?.content?.trim() || "";
     const parsed = parseLabels(content);
     return parsed.length > 0 ? parsed : heuristicLabels(title, description);
   } catch (error) {
@@ -265,6 +291,14 @@ router.post(
       }
     }
 
+    // Generate AI labels upfront so the task immediately displays them in the UI
+    let taskLabels = [];
+    try {
+      taskLabels = await generateLabels(title.trim(), description);
+    } catch {
+      taskLabels = heuristicLabels(title.trim(), description);
+    }
+
     const client = await pool.connect();
     let savedTask;
 
@@ -294,7 +328,7 @@ router.post(
           description,
           category,
           status,
-          [], // initial labels empty, updated after commit
+          taskLabels,
           null,
         ]
       );
@@ -328,15 +362,6 @@ router.post(
     } finally {
       client.release();
     }
-
-    // Run AI label call AFTER commit so slow Groq request never holds a DB lock
-    generateLabels(title.trim(), description)
-      .then(async (labels) => {
-        if (Array.isArray(labels) && labels.length > 0) {
-          await pool.query("UPDATE tasks SET labels = $1 WHERE id = $2", [labels, savedTask.id]);
-        }
-      })
-      .catch((err) => console.error("AI label background update:", err.message));
 
     res.status(201).json(savedTask);
   }

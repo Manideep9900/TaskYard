@@ -9,18 +9,38 @@ const stripeWebhook = require("./routes/webhook");
 const app = express();
 
 // CORS Configuration
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+const defaultOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "https://taskyard-fronten.onrender.com",
+  "https://taskyard-frontend.onrender.com",
+];
+
+const envOrigins = (process.env.FRONTEND_URL || "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
+
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like curl, Postman, mobile) or matching allowed list
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+      // allow requests with no origin (like curl, Postman, mobile)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.replace(/\/$/, "");
+
+      if (
+        allowedOrigins.includes(cleanOrigin) ||
+        allowedOrigins.includes("*") ||
+        cleanOrigin.endsWith(".onrender.com")
+      ) {
         return callback(null, true);
       }
+
+      console.warn(`[CORS] Blocked origin: ${origin}`);
       return callback(new Error(`CORS origin ${origin} not allowed by policy`));
     },
     credentials: true,

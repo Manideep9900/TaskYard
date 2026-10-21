@@ -109,10 +109,9 @@ h1, h2, h3, h4 {
   top: 0;
   z-index: 100;
   width: 100%;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  background: rgba(255, 255, 255, 0.88);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  background: #ffffff;
+  border-bottom: 1px solid var(--pk-border);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 .ty-navbar-inner {

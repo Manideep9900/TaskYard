@@ -197,50 +197,99 @@ function Profile({ user, onLogout }) {
           </div>
         </section>
 
-        {/* Stripe Subscription Section */}
+        {/* Stripe Subscription & Pricing Cards Section */}
         <section className="ty-profile-section">
-          <p className="ty-eyebrow">BILLING & SUBSCRIPTION</p>
-          <h2>Subscription Details</h2>
+          <p className="ty-eyebrow">PLANS & BILLING</p>
+          <h2>Subscription Plans</h2>
+          <p className="ty-section-desc">
+            Choose the plan that fits your execution pace. Upgrade or manage anytime via Stripe.
+          </p>
 
-          {profile?.plan === "premium" ? (
-            <div className="ty-billing-box">
-              <div className="ty-billing-status">
-                <span className="ty-billing-icon">✓</span>
-                <div>
-                  <strong>Active Premium Subscription</strong>
-                  <p>You have access to 10,000 tasks/month and all premium features.</p>
+          <div className="ty-pricing-cards-grid">
+            {/* Free Plan Card */}
+            <div className={`ty-pricing-card ty-pricing-free ${profile?.plan !== "premium" ? "is-current" : ""}`}>
+              <div className="ty-pricing-card-top">
+                <span className="ty-pricing-pill ty-pill-yellow">FREE</span>
+                <h3 className="ty-pricing-title">Starter</h3>
+                <div className="ty-pricing-cost">
+                  <span className="ty-price-amount">$0</span>
+                  <span className="ty-price-period">/ month</span>
                 </div>
+                <p className="ty-pricing-sub">Essential personal task tracking</p>
               </div>
 
-              <button
-                className="ty-secondary-button"
-                onClick={handleManageBilling}
-                disabled={Boolean(actionLoading)}
-              >
-                {actionLoading === "portal" ? "Opening Stripe Portal…" : "Manage Billing & Invoices ↗"}
-              </button>
+              <ul className="ty-pricing-features">
+                <li><span className="ty-feature-check">✓</span> 100 tasks created per month</li>
+                <li><span className="ty-feature-check">✓</span> Drag & Drop Kanban board</li>
+                <li><span className="ty-feature-check">✓</span> 1MB image attachments</li>
+                <li><span className="ty-feature-check">✓</span> Standard task categories</li>
+              </ul>
+
+              <div className="ty-pricing-action">
+                {profile?.plan !== "premium" ? (
+                  <button type="button" className="ty-pricing-btn-current" disabled>
+                    ✓ Current Plan
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="ty-secondary-button"
+                    onClick={handleManageBilling}
+                    disabled={Boolean(actionLoading)}
+                  >
+                    Downgrade in Portal ↗
+                  </button>
+                )}
+              </div>
             </div>
-          ) : (
-            <div className="ty-upgrade-box">
-              <div>
-                <h3>Upgrade to Premium</h3>
-                <p>Get up to 10,000 tasks/month, priority AI labeling, and unlimited attachments.</p>
-                <ul className="ty-plan-features">
-                  <li>✓ 10,000 monthly task limit (vs 100 on Free)</li>
-                  <li>✓ AI task labels on demand</li>
-                  <li>✓ Stripe customer portal for self-service cancellation</li>
-                </ul>
+
+            {/* Pro Plan Card */}
+            <div className={`ty-pricing-card ty-pricing-pro ${profile?.plan === "premium" ? "is-current" : ""}`}>
+              <div className="ty-pricing-pro-glow" aria-hidden="true" />
+              <div className="ty-pricing-card-top">
+                <div className="ty-pricing-badge-row">
+                  <span className="ty-pricing-pill ty-pill-blue">PRO</span>
+                  <span className="ty-pricing-pill ty-pill-pink">POPULAR</span>
+                </div>
+                <h3 className="ty-pricing-title">Premium</h3>
+                <div className="ty-pricing-cost">
+                  <span className="ty-price-amount">$9.99</span>
+                  <span className="ty-price-period">/ month</span>
+                </div>
+                <p className="ty-pricing-sub">For high performers and power organizers</p>
               </div>
 
-              <button
-                className="ty-upgrade-cta-button"
-                onClick={handleUpgrade}
-                disabled={Boolean(actionLoading)}
-              >
-                {actionLoading === "upgrade" ? "Redirecting to Stripe…" : "⭐ Upgrade to Premium"}
-              </button>
+              <ul className="ty-pricing-features">
+                <li><span className="ty-feature-check">✓</span> <strong>10,000 tasks/month</strong> (100x capacity)</li>
+                <li><span className="ty-feature-check">✓</span> <strong>OpenAI & Groq AI labeling</strong> automatically</li>
+                <li><span className="ty-feature-check">✓</span> High-res attachments in Postgres BYTEA</li>
+                <li><span className="ty-feature-check">✓</span> Self-service Stripe portal for billing & invoices</li>
+                <li><span className="ty-feature-check">✓</span> Priority support & early feature access</li>
+              </ul>
+
+              <div className="ty-pricing-action">
+                {profile?.plan === "premium" ? (
+                  <button
+                    type="button"
+                    className="ty-pricing-btn-manage"
+                    onClick={handleManageBilling}
+                    disabled={Boolean(actionLoading)}
+                  >
+                    {actionLoading === "portal" ? "Opening Stripe…" : "✓ Active · Manage Subscription ↗"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="ty-pricing-btn-upgrade"
+                    onClick={handleUpgrade}
+                    disabled={Boolean(actionLoading)}
+                  >
+                    {actionLoading === "upgrade" ? "Redirecting to Stripe…" : "⭐ Upgrade to Pro"}
+                  </button>
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </section>
 
         {/* Account Details */}

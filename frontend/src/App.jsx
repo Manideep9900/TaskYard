@@ -8,6 +8,7 @@ import Auth from "./components/Auth";
 import Profile from "./components/Profile";
 import TaskDetail from "./components/TaskDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
+import StickyNotesWidget from "./components/StickyNotesWidget";
 import { apiRequest, apiUpload } from "./api";
 import { getTaskStatus } from "./taskstatus";
 
@@ -25,7 +26,27 @@ function Dashboard({
   toggleTheme,
 }) {
   const tasksSectionRef = useRef(null);
+  const searchInputRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore if user is already typing in an input or textarea
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+      if (e.key === "/" || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const scrollToTasks = () => {
     setTimeout(() => {
@@ -407,6 +428,24 @@ function Dashboard({
       </aside>
 
       <main className="ty-main" id="dashboard">
+        {/* Desktop Simulation titlebar strip */}
+        <div className="ty-desktop-titlebar" aria-hidden="true">
+          <div className="ty-desktop-dots">
+            <span className="ty-window-dot dot-red" />
+            <span className="ty-window-dot dot-yellow" />
+            <span className="ty-window-dot dot-green" />
+          </div>
+          <div className="ty-desktop-window-title">
+            <span className="ty-desktop-app-name">TaskYard</span>
+            <span className="ty-desktop-sep">/</span>
+            <span className="ty-desktop-sub">Deep Stealth Workspace</span>
+          </div>
+          <div className="ty-desktop-system-status">
+            <span className="ty-desktop-indicator" />
+            <span>Active Sync</span>
+          </div>
+        </div>
+
         {successMessage && (
           <div className="success-notification" role="status">
             ✓ &nbsp;{successMessage}
@@ -623,11 +662,15 @@ function Dashboard({
                 <label className="ty-search">
                   <span>⌕</span>
                   <input
+                    ref={searchInputRef}
                     type="text"
-                    placeholder="Search tasks by title…"
+                    placeholder="Search tasks by title… (Press / or Ctrl+K)"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                   />
+                  <span className="ty-search-kbd-hint">
+                    <kbd>Ctrl</kbd> <kbd>K</kbd>
+                  </span>
                 </label>
                 <div className="ty-filter-block">
                   <label className="ty-filter-label" htmlFor="ty-board-category">
@@ -652,12 +695,15 @@ function Dashboard({
                 <label className="ty-search">
                   <span>⌕</span>
                   <input
+                    ref={searchInputRef}
                     type="text"
-                    placeholder="Search tasks by title…"
+                    placeholder="Search tasks by title… (Press / or Ctrl+K)"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                   />
-                  <kbd>⌕</kbd>
+                  <span className="ty-search-kbd-hint">
+                    <kbd>/</kbd> or <kbd>Ctrl</kbd> <kbd>K</kbd>
+                  </span>
                 </label>
                 <div className="ty-filter-row">
                   <div className="ty-filter-block">
@@ -768,6 +814,9 @@ function Dashboard({
           <span className="ty-footer-right">One task at a time ✦</span>
         </footer>
       </main>
+
+      {/* Sticky Notes & Edge Pill Component */}
+      <StickyNotesWidget />
     </div>
   );
 }

@@ -46,3 +46,4 @@ async function importImages() {
 importImages()
   .catch(console.error)
   .finally(() => pool.end());
+

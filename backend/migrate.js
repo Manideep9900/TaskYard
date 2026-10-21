@@ -40,6 +40,17 @@ async function migrate() {
     ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
   `);
 
+  // Upgrade 3: PostgreSQL BYTEA storage for task images with ON DELETE CASCADE
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS task_images (
+      task_id    INTEGER PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,
+      mime_type  TEXT    NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      data       BYTEA   NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+
   console.log("Migrations complete!");
   process.exit(0);
 }

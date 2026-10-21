@@ -33,9 +33,6 @@ app.post("/webhook/stripe", express.raw({ type: "application/json" }), stripeWeb
 // Parse JSON for all other routes
 app.use(express.json());
 
-// Serve uploaded images as static files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
 // Home route
 app.get("/", (req, res) => {
   res.send("Task Manager Backend is running!");
@@ -57,9 +54,9 @@ app.use("/billing", billingRoutes);
 // File upload / general error handling
 app.use((err, req, res, next) => {
   if (err.code === "LIMIT_FILE_SIZE") {
-    return res.status(400).json({ message: "File size must be under 1MB." });
+    return res.status(413).json({ message: "Image must be 1 MB or smaller." });
   }
-  if (err.message && err.message.includes("Only image files")) {
+  if (err.status === 400 || (err.message && err.message.includes("allowed"))) {
     return res.status(400).json({ message: err.message });
   }
   console.error("Unhandled server error:", err);

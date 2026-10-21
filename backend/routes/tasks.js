@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const path = require("path");
-const fs = require("fs");
 
 const pool = require("../db");
 const authMiddleware = require("../middleware/authMiddleware");
 const usageLimit = require("../middleware/usageLimit");
-const upload = require("../middleware/upload");
+const { upload, detectImageType } = require("../middleware/upload");
 
 const VALID_PRIORITIES = ["low", "medium", "high"];
 const VALID_CATEGORIES = ["Personal", "College", "Work", "Project"];
@@ -30,22 +28,6 @@ const isValidDate = (date) => {
 };
 
 const isValidTaskId = (id) => /^\d+$/.test(id) && Number(id) > 0;
-
-// Helper: delete an image file from disk
-function deleteImageFile(imageUrl) {
-  if (!imageUrl) return;
-  try {
-    const filename = imageUrl.split("/uploads/")[1];
-    if (filename) {
-      const filePath = path.join(__dirname, "..", "uploads", filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-  } catch (err) {
-    console.error("Error deleting image file:", err);
-  }
-}
 
 function parseLabels(text) {
   const cleaned = String(text || "")
@@ -118,7 +100,14 @@ async function generateLabels(title, description) {
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM tasks WHERE user_id = $1 ORDER BY id DESC",
+      `SELECT tasks.*,
+              EXISTS (SELECT 1 FROM task_images WHERE task_images.task_id = tasks.id) AS has_image,
+              CASE WHEN EXISTS (SELECT 1 FROM task_images WHERE task_images.task_id = tasks.id)
+                   THEN '/tasks/' || tasks.id || '/image'
+                   ELSE NULL END AS image_url
+       FROM tasks
+       WHERE user_id = $1
+       ORDER BY id DESC`,
       [req.user.id]
     );
 
@@ -126,6 +115,36 @@ router.get("/", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Get tasks error:", error);
     res.status(500).json({ message: "Unable to load tasks." });
+  }
+});
+
+// GET single task by ID
+router.get("/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidTaskId(id)) {
+      return res.status(400).json({ message: "Invalid task ID." });
+    }
+
+    const result = await pool.query(
+      `SELECT tasks.*,
+              EXISTS (SELECT 1 FROM task_images WHERE task_images.task_id = tasks.id) AS has_image,
+              CASE WHEN EXISTS (SELECT 1 FROM task_images WHERE task_images.task_id = tasks.id)
+                   THEN '/tasks/' || tasks.id || '/image'
+                   ELSE NULL END AS image_url
+       FROM tasks
+       WHERE id = $1 AND user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Get task by ID error:", error);
+    res.status(500).json({ message: "Unable to load task." });
   }
 });
 
@@ -151,7 +170,7 @@ router.post(
     upload.single("image")(req, res, (err) => {
       if (err) {
         if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(400).json({ message: "Image must be under 1MB." });
+          return res.status(413).json({ message: "Image must be 1 MB or smaller." });
         }
         return res.status(400).json({ message: err.message || "File upload failed." });
       }
@@ -169,52 +188,56 @@ router.post(
     } = req.body;
 
     if (typeof title !== "string" || !title.trim()) {
-      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
       return res.status(400).json({
         message: "Task title is required.",
       });
     }
 
     if (title.trim().length > 200) {
-      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
       return res.status(400).json({
         message: "Task title cannot exceed 200 characters.",
       });
     }
 
     if (!VALID_PRIORITIES.includes(priority)) {
-      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
       return res.status(400).json({
         message: "Priority must be low, medium, or high.",
       });
     }
 
     if (!VALID_CATEGORIES.includes(category)) {
-      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
       return res.status(400).json({
         message: "Please select a valid category.",
       });
     }
 
     if (!VALID_STATUSES.includes(status)) {
-      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
       return res.status(400).json({
         message: "Status must be todo, in_progress, or done.",
       });
     }
 
     if (typeof description !== "string" || description.length > 5000) {
-      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
       return res.status(400).json({
         message: "Description must be text and cannot exceed 5000 characters.",
       });
     }
 
     if (!isValidDate(due_date)) {
-      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
       return res.status(400).json({
         message: "Please provide a valid due date.",
       });
+    }
+
+    // Check file magic bytes if uploaded
+    let detectedMime = null;
+    if (req.file) {
+      detectedMime = detectImageType(req.file.buffer);
+      if (!detectedMime) {
+        return res.status(400).json({
+          message: "Only JPEG, PNG, GIF or WebP images are allowed.",
+        });
+      }
     }
 
     const client = await pool.connect();
@@ -227,17 +250,10 @@ router.post(
       const slot = await client.query(RESERVE_TASK_SLOT_SQL, [req.user.id]);
       if (slot.rowCount === 0) {
         await client.query("ROLLBACK");
-        if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
         return res.status(403).json({
           code: "TASK_LIMIT_REACHED",
           message: "Monthly task limit reached. Upgrade to Premium to create more.",
         });
-      }
-
-      // Handle image attachment
-      let imageUrl = null;
-      if (req.file) {
-        imageUrl = `/uploads/${req.file.filename}`;
       }
 
       const result = await client.query(
@@ -254,17 +270,34 @@ router.post(
           category,
           status,
           [], // initial labels empty, updated after commit
-          imageUrl,
+          null,
         ]
       );
       savedTask = result.rows[0];
 
+      if (req.file) {
+        await client.query(
+          `INSERT INTO task_images (task_id, mime_type, size_bytes, data)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (task_id) DO UPDATE
+           SET mime_type = EXCLUDED.mime_type,
+               size_bytes = EXCLUDED.size_bytes,
+               data = EXCLUDED.data,
+               created_at = now()`,
+          [savedTask.id, detectedMime, req.file.size, req.file.buffer]
+        );
+
+        const imgPath = `/tasks/${savedTask.id}/image`;
+        await client.query("UPDATE tasks SET image_url = $1 WHERE id = $2", [imgPath, savedTask.id]);
+        savedTask.image_url = imgPath;
+        savedTask.has_image = true;
+      } else {
+        savedTask.has_image = false;
+      }
+
       await client.query("COMMIT");
     } catch (error) {
       await client.query("ROLLBACK").catch(() => {});
-      if (req.file) {
-        deleteImageFile(`/uploads/${req.file.filename}`);
-      }
       console.error("Create task transaction error:", error);
       return res.status(500).json({ message: "Unable to create task." });
     } finally {
@@ -421,7 +454,64 @@ router.post("/:id/labels", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE a task belonging to the logged-in user + automatic cleanup of image
+// GET task image from BYTEA table task_images (private, owner-only)
+router.get("/:id/image", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidTaskId(id)) {
+      return res.status(400).json({ message: "Invalid task ID." });
+    }
+
+    const result = await pool.query(
+      `SELECT ti.mime_type, ti.data
+       FROM task_images ti
+       JOIN tasks t ON t.id = ti.task_id
+       WHERE ti.task_id = $1 AND t.user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Image not found." });
+    }
+
+    const { mime_type, data } = result.rows[0];
+    res.setHeader("Content-Type", mime_type);
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.send(data);
+  } catch (error) {
+    console.error("Get task image error:", error);
+    res.status(500).json({ message: "Unable to load task image." });
+  }
+});
+
+// DELETE remove image attachment from task without deleting the task
+router.delete("/:id/image", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidTaskId(id)) {
+      return res.status(400).json({ message: "Invalid task ID." });
+    }
+
+    const check = await pool.query(
+      "SELECT id FROM tasks WHERE id = $1 AND user_id = $2",
+      [id, req.user.id]
+    );
+    if (check.rows.length === 0) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+
+    await pool.query("DELETE FROM task_images WHERE task_id = $1", [id]);
+    await pool.query("UPDATE tasks SET image_url = NULL WHERE id = $1", [id]);
+
+    res.json({ message: "Image removed successfully.", taskId: Number(id) });
+  } catch (error) {
+    console.error("Delete task image error:", error);
+    res.status(500).json({ message: "Unable to delete task image." });
+  }
+});
+
+// DELETE a task belonging to the logged-in user (Postgres ON DELETE CASCADE cleans up task_images automatically)
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -443,13 +533,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       });
     }
 
-    // Automatic cleanup: delete the task's image from disk if one exists
-    const deletedTask = result.rows[0];
-    if (deletedTask.image_url) {
-      deleteImageFile(deletedTask.image_url);
-    }
-
-    res.json(deletedTask);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("Delete task error:", error);
     res.status(500).json({ message: "Unable to delete task." });

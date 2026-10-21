@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../api";
+import AuthImage from "./AuthImage";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -43,6 +44,18 @@ function TaskDetail() {
       setError(err.message || "Failed to generate labels.");
     } finally {
       setLabelsLoading(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!window.confirm("Are you sure you want to remove this attached image?")) return;
+    try {
+      await apiRequest(`/tasks/${id}/image`, { method: "DELETE" });
+      setTask((prev) => ({ ...prev, image_url: null, has_image: false }));
+      setStatusMessage("Image removed successfully.");
+      setTimeout(() => setStatusMessage(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to remove image.");
     }
   };
 
@@ -176,14 +189,26 @@ function TaskDetail() {
         </section>
 
         {/* Image Attachment Section */}
-        {task.image_url && (
+        {(task.has_image || task.image_url) && (
           <section className="ty-detail-section">
-            <p className="ty-eyebrow">ATTACHMENT</p>
-            <h2>Attached Image</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <div>
+                <p className="ty-eyebrow">ATTACHMENT</p>
+                <h2 style={{ margin: 0 }}>Attached Image</h2>
+              </div>
+              <button
+                type="button"
+                className="secondary-button"
+                style={{ fontSize: "0.82rem", padding: "6px 12px" }}
+                onClick={handleRemoveImage}
+              >
+                🗑️ Remove Image
+              </button>
+            </div>
             <div className="ty-detail-image-box">
-              <img
-                src={`${API_URL}${task.image_url}`}
-                alt="Task attachment"
+              <AuthImage
+                taskId={task.id}
+                alt={task.title}
                 className="ty-detail-attachment"
               />
             </div>
@@ -193,7 +218,7 @@ function TaskDetail() {
         {/* Actions */}
         <div className="ty-detail-actions-bar">
           <button className="delete-button ty-detail-delete-btn" onClick={handleDelete}>
-            🗑️ Delete Task and Image
+            🗑️ Delete Task
           </button>
         </div>
       </div>

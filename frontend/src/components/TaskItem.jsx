@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthImage from "./AuthImage";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -83,12 +84,12 @@ function TaskItem({ task, onComplete, onDelete, onUpdate }) {
         )}
 
         {/* Image Attachment thumbnail */}
-        {task.image_url && (
+        {(task.has_image || task.image_url) && (
           <div className="task-item-image-wrap">
             <Link to={`/task/${task.id}`} title="View image">
-              <img
-                src={`${API_URL}${task.image_url}`}
-                alt="Attachment"
+              <AuthImage
+                taskId={task.id}
+                alt={task.title}
                 className="task-item-thumbnail"
               />
             </Link>

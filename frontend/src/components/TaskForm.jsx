@@ -40,6 +40,9 @@ function TaskForm({ onAddTask }) {
   };
 
   const removeImage = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
     setImageFile(null);
     setImagePreview(null);
     if (fileInputRef.current) {

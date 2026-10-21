@@ -36,9 +36,8 @@ export async function apiRequest(path, options = {}) {
     throw new Error("Your session has expired. Please log in again.");
   }
 
-  const data = await response.json().catch(() => null);
-
   if (!response.ok) {
+    const data = await response.json().catch(() => null);
     const err = new Error(
       data?.message || "Something went wrong. Please try again."
     );
@@ -47,7 +46,17 @@ export async function apiRequest(path, options = {}) {
     throw err;
   }
 
+  if (options.responseType === "blob") {
+    return await response.blob();
+  }
+
+  const data = await response.json().catch(() => null);
   return data;
+}
+
+// Helper for fetching binary data (blobs) with auth headers
+export async function apiBlob(path) {
+  return apiRequest(path, { responseType: "blob" });
 }
 
 // Helper for sending FormData (file uploads) without setting Content-Type manually
@@ -80,9 +89,8 @@ export async function apiUpload(path, formData, method = "POST") {
     throw new Error("Your session has expired. Please log in again.");
   }
 
-  const data = await response.json().catch(() => null);
-
   if (!response.ok) {
+    const data = await response.json().catch(() => null);
     const err = new Error(
       data?.message || "Something went wrong. Please try again."
     );
@@ -91,5 +99,6 @@ export async function apiUpload(path, formData, method = "POST") {
     throw err;
   }
 
+  const data = await response.json().catch(() => null);
   return data;
 }

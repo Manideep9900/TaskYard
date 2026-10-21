@@ -4128,3 +4128,18 @@ h4.completed .task-title-link {
 [data-theme="dark"] .ty-limit-link {
   color: #818cf8;
 }
+
+/* Upgrade 3: AuthImage Skeleton */
+.auth-image-skeleton {
+  animation: authImagePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes authImagePulse {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+

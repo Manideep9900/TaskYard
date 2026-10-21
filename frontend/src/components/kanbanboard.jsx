@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthImage from "./AuthImage";
 import {
   DndContext,
   DragOverlay,
@@ -53,12 +54,12 @@ function CardContent({ task, onMove, handle }) {
       )}
 
       {/* Image Thumbnail */}
-      {task.image_url && (
+      {(task.has_image || task.image_url) && (
         <div className="task-board-image-wrap">
           <Link to={`/task/${task.id}`}>
-            <img
-              src={`${API_URL}${task.image_url}`}
-              alt="Attachment"
+            <AuthImage
+              taskId={task.id}
+              alt={task.title}
               className="task-board-thumb"
             />
           </Link>

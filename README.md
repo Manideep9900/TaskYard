@@ -2,13 +2,8 @@
 
 **TaskYard** is a modern, high-performance task and workflow management platform designed for distraction-free execution. Built with **React 19**, **Vite**, **Express 5**, and **PostgreSQL (Neon)**, it combines an interactive Kanban board, automated AI task labeling, persistent database image attachments, atomic monthly usage quotas, and Stripe subscription billing.
 
----
 
-## 🌐 Live Deployments
 
-- **Demo:** [taskyard-fronten.onrender.com](https://taskyard-fronten.onrender.com)
-
-> ⏳ **Note:** The backend is hosted on Render's free tier and spins down when idle. The first request after a period of inactivity may take **30–50 seconds** to wake up.
 
 ---
 

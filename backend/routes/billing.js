@@ -76,10 +76,11 @@ router.post("/create-checkout", authMiddleware, async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
+      client_reference_id: String(userId),
       mode: "subscription",
       line_items: [lineItem],
-      success_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/profile?checkout=success`,
-      cancel_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/profile?checkout=cancelled`,
+      success_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/profile?success=true`,
+      cancel_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/profile?canceled=true`,
       metadata: { user_id: String(userId) },
     });
 

@@ -7,9 +7,11 @@ function Profile({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState("");
+  const [isActivating, setIsActivating] = useState(false);
   const [searchParams] = useSearchParams();
 
-  const checkoutStatus = searchParams.get("checkout");
+  const isSuccess = searchParams.get("success") === "true" || searchParams.get("checkout") === "success";
+  const isCanceled = searchParams.get("canceled") === "true" || searchParams.get("checkout") === "cancelled";
 
   useEffect(() => {
     apiRequest("/auth/profile")
@@ -17,6 +19,35 @@ function Profile({ user, onLogout }) {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  // Poll for webhook plan activation if redirected back from Stripe
+  useEffect(() => {
+    if (!isSuccess || !profile || profile.plan === "premium") {
+      setIsActivating(false);
+      return;
+    }
+
+    setIsActivating(true);
+    let attempts = 0;
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const updated = await apiRequest("/auth/profile");
+        setProfile(updated);
+        if (updated.plan === "premium" || attempts >= 10) {
+          clearInterval(interval);
+          setIsActivating(false);
+        }
+      } catch {
+        if (attempts >= 10) {
+          clearInterval(interval);
+          setIsActivating(false);
+        }
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isSuccess, profile?.plan]);
 
   const handleUpgrade = async () => {
     setActionLoading("upgrade");
@@ -77,13 +108,29 @@ function Profile({ user, onLogout }) {
           </Link>
         </div>
 
-        {checkoutStatus === "success" && (
+        {isActivating && (
+          <div
+            className="status-message"
+            style={{
+              marginBottom: "16px",
+              background: "rgba(99, 102, 241, 0.12)",
+              borderRadius: "12px",
+              padding: "14px 18px",
+              color: "#4f46e5",
+              fontWeight: 600,
+            }}
+          >
+            ⏳ Payment received, activating your plan…
+          </div>
+        )}
+
+        {isSuccess && profile?.plan === "premium" && !isActivating && (
           <div className="success-notification" role="status" style={{ position: "relative", marginBottom: "20px", left: "auto", transform: "none" }}>
             ✓ &nbsp;Payment successful! Welcome to the Premium plan.
           </div>
         )}
 
-        {checkoutStatus === "cancelled" && (
+        {isCanceled && (
           <div className="form-error" style={{ marginBottom: "20px" }}>
             Checkout was cancelled. You can upgrade whenever you are ready.
           </div>

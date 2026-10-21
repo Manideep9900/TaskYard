@@ -4,7 +4,7 @@ const path = require("path");
 const taskRoutes = require("./routes/tasks");
 const authRoutes = require("./routes/auth");
 const billingRoutes = require("./routes/billing");
-const webhookRoutes = require("./routes/webhook");
+const stripeWebhook = require("./routes/webhook");
 
 const app = express();
 
@@ -28,7 +28,7 @@ app.use(
 );
 
 // Stripe webhook needs raw body — must come BEFORE express.json()
-app.use("/webhook", express.raw({ type: "application/json" }), webhookRoutes);
+app.post("/webhook/stripe", express.raw({ type: "application/json" }), stripeWebhook);
 
 // Parse JSON for all other routes
 app.use(express.json());

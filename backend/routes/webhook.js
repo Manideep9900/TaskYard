@@ -1,88 +1,68 @@
-const express = require("express");
-const router = express.Router();
+const Stripe = require("stripe");
 const pool = require("../db");
 
-// Stripe webhook — this route receives raw body
-router.post("/stripe", async (req, res) => {
-  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === "YOUR_STRIPE_SECRET_KEY_HERE") {
-    return res.status(503).send("Stripe not configured.");
+const setPlanByCustomer = (customerId, plan) =>
+  pool.query("UPDATE users SET plan = $1 WHERE stripe_customer_id = $2", [plan, customerId]);
+
+async function stripeWebhook(req, res) {
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeKey) {
+    return res.status(500).json({ message: "Stripe not configured on server." });
   }
 
-  const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(stripeKey);
   const sig = req.headers["stripe-signature"];
 
   let event;
   try {
-    if (process.env.STRIPE_WEBHOOK_SECRET && process.env.STRIPE_WEBHOOK_SECRET !== "YOUR_STRIPE_WEBHOOK_SECRET_HERE") {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
-    } else {
-      // In development or when webhook secret is not set yet, parse from json body if possible
-      event = JSON.parse(req.body.toString());
-    }
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
   } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error("Stripe signature check failed:", err.message);
+    return res.status(400).json({ message: "Invalid signature." }); // forged or corrupted
   }
 
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object;
-        const customerId = session.customer;
-
-        await pool.query(
-          "UPDATE users SET plan = 'premium' WHERE stripe_customer_id = $1",
-          [customerId]
-        );
-        console.log(`User upgraded to premium: customer ${customerId}`);
-        break;
-      }
-
-      case "customer.subscription.updated": {
-        const subscription = event.data.object;
-        const customerId = subscription.customer;
-        const status = subscription.status;
-
-        if (status === "active") {
+        const s = event.data.object;
+        if (s.mode !== "subscription") break; // ignore one-off payments
+        const userId = s.client_reference_id;
+        if (userId) {
+          // links the customer if it was not saved yet, and updates plan
           await pool.query(
-            "UPDATE users SET plan = 'premium' WHERE stripe_customer_id = $1",
-            [customerId]
+            "UPDATE users SET plan = 'premium', stripe_customer_id = COALESCE(stripe_customer_id, $1) WHERE id = $2",
+            [s.customer, userId]
           );
-        } else if (status === "canceled" || status === "unpaid") {
-          await pool.query(
-            "UPDATE users SET plan = 'free' WHERE stripe_customer_id = $1",
-            [customerId]
-          );
+        } else {
+          await setPlanByCustomer(s.customer, "premium");
         }
         break;
       }
-
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object;
-        const customerId = subscription.customer;
-
-        await pool.query(
-          "UPDATE users SET plan = 'free' WHERE stripe_customer_id = $1",
-          [customerId]
-        );
-        console.log(`User downgraded to free: customer ${customerId}`);
+      case "customer.subscription.updated": {
+        const sub = event.data.object;
+        if (["active", "trialing"].includes(sub.status)) {
+          await setPlanByCustomer(sub.customer, "premium");
+        } else if (["canceled", "unpaid", "incomplete_expired"].includes(sub.status)) {
+          await setPlanByCustomer(sub.customer, "free");
+        }
+        // past_due / incomplete: Stripe is still retrying, keep current plan
         break;
       }
-
+      case "customer.subscription.deleted":
+        await setPlanByCustomer(event.data.object.customer, "free");
+        break;
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        break;
     }
-  } catch (error) {
-    console.error("Webhook handler error:", error);
-    return res.status(500).json({ message: "Webhook handler failed." });
+    res.json({ received: true });
+  } catch (err) {
+    console.error("Webhook processing error:", err);
+    res.status(500).json({ message: "Webhook failed." }); // 500 makes Stripe retry
   }
+}
 
-  res.json({ received: true });
-});
-
-module.exports = router;
-
+module.exports = stripeWebhook;

@@ -1,23 +1,31 @@
 import { useEffect, useRef, useState } from "react";
+import { Routes, Route, Navigate, useNavigate, Link } from "react-router-dom";
 import "./App.css";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import KanbanBoard from "./components/kanbanboard";
 import Auth from "./components/Auth";
-import { apiRequest } from "./api";
+import Profile from "./components/Profile";
+import TaskDetail from "./components/TaskDetail";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { apiRequest, apiUpload } from "./api";
 import { getTaskStatus } from "./taskstatus";
 
-function App() {
+function Dashboard({
+  user,
+  tasks,
+  setTasks,
+  loading,
+  error,
+  setError,
+  successMessage,
+  showSuccessMessage,
+  logout,
+  theme,
+  toggleTheme,
+}) {
   const tasksSectionRef = useRef(null);
-
-  const showSuccessMessage = (message) => {
-    setError("");
-    setSuccessMessage(message);
-
-    setTimeout(() => {
-      setSuccessMessage("");
-    }, 3000);
-  };
+  const navigate = useNavigate();
 
   const scrollToTasks = () => {
     setTimeout(() => {
@@ -28,76 +36,41 @@ function App() {
     }, 150);
   };
 
-  const [tasks, setTasks] = useState([]);
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-  const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("taskyard-theme") || "dark";
-  });
-
-  const toggleTheme = () => {
-    setTheme((currentTheme) => {
-      const newTheme = currentTheme === "dark" ? "light" : "dark";
-      localStorage.setItem("taskyard-theme", newTheme);
-      return newTheme;
-    });
-  };
-
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [filter, setFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [showUpcomingOnly, setShowUpcomingOnly] = useState(false);
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
-  // "list" shows the filterable task list, "board" shows the Kanban board.
   const [view, setView] = useState("list");
 
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    apiRequest("/tasks")
-      .then((data) => {
-        // The API may return an array directly or an object containing tasks.
-        const receivedTasks = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.tasks)
-            ? data.tasks
-            : [];
-        setTasks(receivedTasks);
-      })
-      .catch((error) => {
-        setError(error.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [user]);
-
-  const addTask = async (title, priority, dueDate, description, category) => {
+  const addTask = async (title, priority, dueDate, description, category, imageFile) => {
     try {
       setError("");
 
-      const newTask = await apiRequest("/tasks", {
-        method: "POST",
-        body: JSON.stringify({
-          title,
-          priority,
-          due_date: dueDate,
-          description,
-          category,
-        }),
-      });
+      let newTask;
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("priority", priority);
+        formData.append("due_date", dueDate);
+        formData.append("description", description);
+        formData.append("category", category);
+        formData.append("image", imageFile);
+
+        newTask = await apiUpload("/tasks", formData);
+      } else {
+        newTask = await apiRequest("/tasks", {
+          method: "POST",
+          body: JSON.stringify({
+            title,
+            priority,
+            due_date: dueDate,
+            description,
+            category,
+          }),
+        });
+      }
 
       setTasks((previousTasks) => [
         ...(Array.isArray(previousTasks) ? previousTasks : []),
@@ -105,12 +78,10 @@ function App() {
       ]);
 
       showSuccessMessage("Task added successfully!");
-    } catch (error) {
-      console.error("Add task error:", error);
-      setSuccessMessage("");
-      setError(error.message || "Unable to add task. Please try again.");
-
-      throw error;
+    } catch (err) {
+      console.error("Add task error:", err);
+      setError(err.message || "Unable to add task. Please try again.");
+      throw err;
     }
   };
 
@@ -134,10 +105,9 @@ function App() {
       showSuccessMessage(
         updatedTask.completed ? "Task completed!" : "Task marked active."
       );
-    } catch (error) {
-      console.error("Complete task error:", error);
-      setSuccessMessage("");
-      setError(error.message || "Unable to update task.");
+    } catch (err) {
+      console.error("Complete task error:", err);
+      setError(err.message || "Unable to update task.");
     }
   };
 
@@ -152,10 +122,9 @@ function App() {
         )
       );
       showSuccessMessage("Task deleted successfully!");
-    } catch (error) {
-      console.error("Delete task error:", error);
-      setSuccessMessage("");
-      setError(error.message || "Unable to delete task.");
+    } catch (err) {
+      console.error("Delete task error:", err);
+      setError(err.message || "Unable to delete task.");
     }
   };
 
@@ -183,15 +152,12 @@ function App() {
         )
       );
       showSuccessMessage("Task updated successfully!");
-    } catch (error) {
-      console.error("Update task error:", error);
-      setSuccessMessage("");
-      setError(error.message || "Unable to update task.");
+    } catch (err) {
+      console.error("Update task error:", err);
+      setError(err.message || "Unable to update task.");
     }
   };
 
-  // Move a task to another Kanban column.
-  // The card moves immediately; if the server rejects it, it snaps back.
   const moveTask = async (task, newStatus) => {
     if (getTaskStatus(task) === newStatus) return;
 
@@ -215,38 +181,27 @@ function App() {
           item.id === updatedTask.id ? updatedTask : item
         )
       );
-    } catch (error) {
-      console.error("Move task error:", error);
+    } catch (err) {
+      console.error("Move task error:", err);
       setTasks((previousTasks) =>
         (Array.isArray(previousTasks) ? previousTasks : []).map((item) =>
           item.id === task.id ? task : item
         )
       );
-      setSuccessMessage("");
-      setError(error.message || "Unable to move task. Please try again.");
+      setError(err.message || "Unable to move task. Please try again.");
     }
   };
 
-  // Keep all dashboard calculations safe if the API ever returns null or malformed data.
   const safeTasks = Array.isArray(tasks) ? tasks : [];
 
   const filteredTasks = safeTasks.filter((task) => {
-    if (filter === "active") {
-      return !task.completed;
-    }
-
-    if (filter === "completed") {
-      return task.completed;
-    }
-
+    if (filter === "active") return !task.completed;
+    if (filter === "completed") return task.completed;
     return true;
   });
 
   const categoryFilteredTasks = (filteredTasks || []).filter((task) => {
-    if (categoryFilter === "all") {
-      return true;
-    }
-
+    if (categoryFilter === "all") return true;
     return task.category === categoryFilter;
   });
 
@@ -256,32 +211,21 @@ function App() {
 
   const tasksToSort = searchedTasks.filter((task) => {
     if (showOverdueOnly) {
-      if (!task.due_date || task.completed) {
-        return false;
-      }
-
+      if (!task.due_date || task.completed) return false;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
       const dueDate = new Date(task.due_date);
       dueDate.setHours(0, 0, 0, 0);
-
       return dueDate < today;
     }
 
     if (showUpcomingOnly) {
-      if (!task.due_date || task.completed) {
-        return false;
-      }
-
+      if (!task.due_date || task.completed) return false;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
       const dueDate = new Date(task.due_date);
       dueDate.setHours(0, 0, 0, 0);
-
       const daysUntilDue = (dueDate - today) / (1000 * 60 * 60 * 24);
-
       return daysUntilDue >= 0 && daysUntilDue <= 3;
     }
 
@@ -290,28 +234,17 @@ function App() {
 
   const sortedTasks = [...tasksToSort].sort((a, b) => {
     if (sortBy === "priority") {
-      const priorityOrder = {
-        high: 1,
-        medium: 2,
-        low: 3,
-      };
-
-      return (
-        (priorityOrder[a.priority] ?? 4) - (priorityOrder[b.priority] ?? 4)
-      );
+      const priorityOrder = { high: 1, medium: 2, low: 3 };
+      return (priorityOrder[a.priority] ?? 4) - (priorityOrder[b.priority] ?? 4);
     }
-
     if (sortBy === "dueDate") {
       if (!a.due_date) return 1;
       if (!b.due_date) return -1;
-
       return new Date(a.due_date) - new Date(b.due_date);
     }
-
     return b.id - a.id;
   });
 
-  // The board shows every status, so it only uses the search and category filters.
   const boardTasks = safeTasks.filter(
     (task) =>
       (categoryFilter === "all" || task.category === categoryFilter) &&
@@ -319,58 +252,20 @@ function App() {
   );
 
   const totalTasks = safeTasks.length;
-
   const completedTasks = safeTasks.filter((task) => task.completed).length;
-
   const activeTasks = safeTasks.filter((task) => !task.completed).length;
-
   const inProgressTasks = safeTasks.filter(
     (task) => getTaskStatus(task) === "in_progress"
   ).length;
-
   const upcomingTasks = safeTasks.filter((task) => {
-    if (!task.due_date || task.completed) {
-      return false;
-    }
-
+    if (!task.due_date || task.completed) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const dueDate = new Date(task.due_date);
     dueDate.setHours(0, 0, 0, 0);
-
     const daysUntilDue = (dueDate - today) / (1000 * 60 * 60 * 24);
-
     return daysUntilDue >= 0 && daysUntilDue <= 3;
   }).length;
-
-  useEffect(() => {
-    localStorage.setItem("taskyard-theme", theme);
-  }, [theme]);
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    setTasks([]);
-    setError("");
-    setSuccessMessage("");
-  };
-
-  useEffect(() => {
-    const handleSessionExpired = () => {
-      logout();
-    };
-
-    window.addEventListener("session-expired", handleSessionExpired);
-    return () => {
-      window.removeEventListener("session-expired", handleSessionExpired);
-    };
-  }, []);
-
-  if (!user) {
-    return <Auth onLogin={setUser} />;
-  }
 
   const completionPercent =
     totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
@@ -429,9 +324,9 @@ function App() {
   return (
     <div className="app ty-dashboard" data-theme={theme}>
       <aside className="ty-sidebar">
-        <a
+        <Link
           className="ty-brand"
-          href="#dashboard"
+          to="/dashboard"
           onClick={(e) => {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -442,7 +337,7 @@ function App() {
             Task<span>Yard</span>
             <small>YOUR DAILY WORKSPACE</small>
           </span>
-        </a>
+        </Link>
         <p className="ty-nav-label">WORKSPACE</p>
         <nav className="ty-nav" aria-label="Main navigation">
           <button
@@ -469,6 +364,13 @@ function App() {
           <button className="ty-nav-item" onClick={() => jumpToTasks("overdue")}>
             <span>⚑</span> Overdue <b className="ty-nav-danger">{overdueTasks}</b>
           </button>
+          <button
+            className="ty-nav-item"
+            onClick={() => navigate("/profile")}
+            style={{ marginTop: "12px", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "10px" }}
+          >
+            <span>👤</span> Profile & Billing
+          </button>
         </nav>
         <div className="ty-sidebar-bottom">
           <div className="ty-sidebar-tip">
@@ -476,15 +378,30 @@ function App() {
             <strong>Small steps add up.</strong>
             <p>Keep moving forward, one task at a time.</p>
           </div>
-          <button className="ty-profile" onClick={logout} title="Log out">
+          <button
+            className="ty-profile"
+            onClick={() => navigate("/profile")}
+            title="View Profile & Billing"
+          >
             <span className="ty-avatar">
-              {(user.name || user.email || "U").charAt(0).toUpperCase()}
+              {user.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt={user.name}
+                  referrerPolicy="no-referrer"
+                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                />
+              ) : (
+                (user.name || user.email || "U").charAt(0).toUpperCase()
+              )}
             </span>
             <span className="ty-profile-text">
               <strong>{user.name || "Your account"}</strong>
-              <small>Signed in · Log out</small>
+              <small>
+                {user.plan === "premium" ? "⭐ Premium" : "Free Plan"} · Profile
+              </small>
             </span>
-            <span className="ty-logout-icon">↗</span>
+            <span className="ty-logout-icon">→</span>
           </button>
         </div>
       </aside>
@@ -521,6 +438,13 @@ function App() {
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               {theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode"}
+            </button>
+            <button
+              className="ty-logout-button"
+              type="button"
+              onClick={() => navigate("/profile")}
+            >
+              Profile 👤
             </button>
             <button className="ty-logout-button" onClick={logout}>
               Log out ↗
@@ -645,7 +569,7 @@ function App() {
               <p className="ty-eyebrow">MAKE IT HAPPEN</p>
               <h2>Create a task</h2>
               <p className="ty-panel-description">
-                Add the next thing you want to get done.
+                Add the next thing you want to get done. AI labels and image attachments supported!
               </p>
             </div>
             <span className="ty-create-mark">＋</span>
@@ -845,6 +769,128 @@ function App() {
         </footer>
       </main>
     </div>
+  );
+}
+
+function App() {
+  const [tasks, setTasks] = useState([]);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("taskyard-theme") || "dark";
+  });
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => {
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      localStorage.setItem("taskyard-theme", newTheme);
+      return newTheme;
+    });
+  };
+
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const showSuccessMessage = (message) => {
+    setError("");
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(""), 3000);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    apiRequest("/tasks")
+      .then((data) => {
+        const receivedTasks = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.tasks)
+            ? data.tasks
+            : [];
+        setTasks(receivedTasks);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem("taskyard-theme", theme);
+  }, [theme]);
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setTasks([]);
+    setError("");
+    setSuccessMessage("");
+  };
+
+  useEffect(() => {
+    const handleSessionExpired = () => logout();
+    window.addEventListener("session-expired", handleSessionExpired);
+    return () => window.removeEventListener("session-expired", handleSessionExpired);
+  }, []);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+  };
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          user ? <Navigate to="/dashboard" replace /> : <Auth onLogin={handleLogin} />
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute user={user}>
+            <Dashboard
+              user={user}
+              tasks={tasks}
+              setTasks={setTasks}
+              loading={loading}
+              error={error}
+              setError={setError}
+              successMessage={successMessage}
+              showSuccessMessage={showSuccessMessage}
+              logout={logout}
+              theme={theme}
+              toggleTheme={toggleTheme}
+            />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/task/:id"
+        element={
+          <ProtectedRoute user={user}>
+            <TaskDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute user={user}>
+            <Profile user={user} onLogout={logout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

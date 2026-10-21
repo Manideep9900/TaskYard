@@ -1,13 +1,24 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const taskRoutes = require("./routes/tasks");
 const authRoutes = require("./routes/auth");
+const billingRoutes = require("./routes/billing");
+const webhookRoutes = require("./routes/webhook");
 
 const app = express();
 
 // Middleware
 app.use(cors());
+
+// Stripe webhook needs raw body — must come BEFORE express.json()
+app.use("/webhook", express.raw({ type: "application/json" }), webhookRoutes);
+
+// Parse JSON for all other routes
 app.use(express.json());
+
+// Serve uploaded images as static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Home route
 app.get("/", (req, res) => {
@@ -22,9 +33,22 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Task routes
+// Routes
 app.use("/tasks", taskRoutes);
 app.use("/auth", authRoutes);
+app.use("/billing", billingRoutes);
+
+// File upload / general error handling
+app.use((err, req, res, next) => {
+  if (err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({ message: "File size must be under 1MB." });
+  }
+  if (err.message && err.message.includes("Only image files")) {
+    return res.status(400).json({ message: err.message });
+  }
+  console.error("Unhandled server error:", err);
+  res.status(500).json({ message: "Internal server error." });
+});
 
 const PORT = process.env.PORT || 3000;
 

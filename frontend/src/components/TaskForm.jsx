@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 function TaskForm({ onAddTask }) {
   const [title, setTitle] = useState("");
@@ -6,8 +6,45 @@ function TaskForm({ onAddTask }) {
   const [dueDate, setDueDate] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Personal");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      setImageFile(null);
+      setImagePreview(null);
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files (JPEG, PNG, GIF, WebP) are allowed.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // 1MB limit check
+    if (file.size > 1 * 1024 * 1024) {
+      setError("Image size exceeds the 1MB limit. Please choose a smaller image.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setError("");
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -28,7 +65,8 @@ function TaskForm({ onAddTask }) {
         priority,
         dueDate,
         description.trim(),
-        category
+        category,
+        imageFile
       );
 
       setTitle("");
@@ -36,8 +74,9 @@ function TaskForm({ onAddTask }) {
       setDueDate("");
       setDescription("");
       setCategory("Personal");
-    } catch (error) {
-      setError(error.message || "Unable to add task. Please try again.");
+      removeImage();
+    } catch (err) {
+      setError(err.message || "Unable to add task. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -127,6 +166,35 @@ function TaskForm({ onAddTask }) {
               onChange={(event) => setDueDate(event.target.value)}
               disabled={isSubmitting}
             />
+          </div>
+
+          {/* Image attachment field */}
+          <div className="task-form-field file-upload-field">
+            <label htmlFor="task-image">
+              Image attachment <small>(Max 1MB, images only)</small>
+            </label>
+            <input
+              id="task-image"
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleImageChange}
+              disabled={isSubmitting}
+              className="task-file-input"
+            />
+            {imagePreview && (
+              <div className="task-image-preview-badge">
+                <img src={imagePreview} alt="Selected preview" />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="task-image-remove-btn"
+                  title="Remove image"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

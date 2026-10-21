@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   DndContext,
   DragOverlay,
@@ -13,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { BOARD_COLUMNS, getTaskStatus } from "../taskstatus";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const PRIORITY_ORDER = { high: 1, medium: 2, low: 3 };
 
 function CardContent({ task, onMove, handle }) {
@@ -27,12 +29,40 @@ function CardContent({ task, onMove, handle }) {
   return (
     <>
       <div className="ty-board-card-top">
-        <h4 className={status === "done" ? "completed" : ""}>{task.title}</h4>
+        <h4 className={status === "done" ? "completed" : ""}>
+          <Link to={`/task/${task.id}`} className="task-title-link">
+            {task.title}
+          </Link>
+        </h4>
         {handle}
       </div>
 
       {task.description && (
         <p className="ty-board-card-desc">{task.description}</p>
+      )}
+
+      {/* AI Labels */}
+      {task.labels && task.labels.length > 0 && (
+        <div className="task-board-labels">
+          {task.labels.map((label, idx) => (
+            <span key={idx} className="task-ai-label-pill">
+              🏷️ {label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Image Thumbnail */}
+      {task.image_url && (
+        <div className="task-board-image-wrap">
+          <Link to={`/task/${task.id}`}>
+            <img
+              src={`${API_URL}${task.image_url}`}
+              alt="Attachment"
+              className="task-board-thumb"
+            />
+          </Link>
+        </div>
       )}
 
       <div className="ty-board-card-meta">

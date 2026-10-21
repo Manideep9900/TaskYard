@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function TaskItem({ task, onComplete, onDelete, onUpdate }) {
   const [editing, setEditing] = useState(false);
@@ -16,9 +19,7 @@ function TaskItem({ task, onComplete, onDelete, onUpdate }) {
     setEditing(false);
   };
 
-  const dueDate = task.due_date
-    ? task.due_date.slice(0, 10)
-    : "";
+  const dueDate = task.due_date ? task.due_date.slice(0, 10) : "";
 
   const isOverdue =
     dueDate &&
@@ -59,13 +60,39 @@ function TaskItem({ task, onComplete, onDelete, onUpdate }) {
         ) : (
           <>
             <h3 className={task.completed ? "completed" : ""}>
-              {task.title}
+              <Link to={`/task/${task.id}`} className="task-title-link">
+                {task.title}
+              </Link>
             </h3>
 
             {task.description && (
               <p className="task-description">{task.description}</p>
             )}
           </>
+        )}
+
+        {/* AI Labels */}
+        {task.labels && task.labels.length > 0 && (
+          <div className="task-item-labels">
+            {task.labels.map((label, index) => (
+              <span key={index} className="task-ai-label-pill">
+                🏷️ {label}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Image Attachment thumbnail */}
+        {task.image_url && (
+          <div className="task-item-image-wrap">
+            <Link to={`/task/${task.id}`} title="View image">
+              <img
+                src={`${API_URL}${task.image_url}`}
+                alt="Attachment"
+                className="task-item-thumbnail"
+              />
+            </Link>
+          </div>
         )}
 
         <div className="task-card-meta">

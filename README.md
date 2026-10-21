@@ -6,8 +6,8 @@
 
 ## 🌐 Live Deployments
 
-- **Frontend Application:** [taskyard-fronten.onrender.com](https://taskyard-fronten.onrender.com)
-- **Backend API:** [task-manager-qszt.onrender.com](https://task-manager-qszt.onrender.com)
+- **Demo:** [taskyard-fronten.onrender.com](https://taskyard-fronten.onrender.com)
+
 
 > ⏳ **Note:** The backend is hosted on Render's free tier and spins down when idle. The first request after a period of inactivity may take **30–50 seconds** to wake up.
 

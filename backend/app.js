@@ -8,8 +8,24 @@ const webhookRoutes = require("./routes/webhook");
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS Configuration
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow requests with no origin (like curl, Postman, mobile) or matching allowed list
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS origin ${origin} not allowed by policy`));
+    },
+    credentials: true,
+  })
+);
 
 // Stripe webhook needs raw body — must come BEFORE express.json()
 app.use("/webhook", express.raw({ type: "application/json" }), webhookRoutes);

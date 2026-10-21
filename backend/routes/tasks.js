@@ -47,7 +47,22 @@ function deleteImageFile(imageUrl) {
   }
 }
 
-// Helper: generate AI labels using Groq or OpenAI
+function parseLabels(text) {
+  const cleaned = String(text || "")
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/```(?:json)?/gi, "")
+    .trim();
+  const match = cleaned.match(/\[[\s\S]*\]/);
+  if (!match) return [];
+  try {
+    const arr = JSON.parse(match[0]);
+    return [...new Set(arr.map((x) => String(x).toLowerCase().trim()).filter((x) => x && x.length <= 24))].slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+// Helper: generate AI labels using Groq or OpenAI with timeout & defensive parsing
 async function generateLabels(title, description) {
   try {
     const OpenAI = require("openai");
@@ -58,15 +73,18 @@ async function generateLabels(title, description) {
     const openaiKey = process.env.OPENAI_API_KEY;
 
     if (groqKey && groqKey !== "YOUR_GROQ_API_KEY_HERE") {
-      // Groq provides an OpenAI-compatible API
       client = new OpenAI({
         apiKey: groqKey,
         baseURL: "https://api.groq.com/openai/v1",
+        timeout: 8000, // 8-second timeout
       });
-      model = "qwen/qwen3.8-27b";
+      model = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
     } else if (openaiKey && openaiKey !== "YOUR_OPENAI_API_KEY_HERE") {
-      client = new OpenAI({ apiKey: openaiKey });
-      model = "gpt-3.5-turbo";
+      client = new OpenAI({
+        apiKey: openaiKey,
+        timeout: 8000,
+      });
+      model = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
     } else {
       return [];
     }
@@ -88,13 +106,10 @@ async function generateLabels(title, description) {
       temperature: 0.2,
     });
 
-    let content = response.choices[0]?.message?.content?.trim() || "";
-    // Remove markdown code fences if present (e.g. ```json ... ```)
-    content = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-    const parsed = JSON.parse(content);
-    return Array.isArray(parsed) ? parsed.slice(0, 3) : [];
+    const content = response.choices[0]?.message?.content?.trim() || "";
+    return parseLabels(content);
   } catch (error) {
-    console.error("AI label generation error:", error.message);
+    console.error("AI label generation notice:", error.message);
     return [];
   }
 }

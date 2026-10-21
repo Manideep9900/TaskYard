@@ -39,9 +39,12 @@ export async function apiRequest(path, options = {}) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(
+    const err = new Error(
       data?.message || "Something went wrong. Please try again."
     );
+    err.code = data?.code;
+    err.status = response.status;
+    throw err;
   }
 
   return data;
@@ -80,9 +83,12 @@ export async function apiUpload(path, formData, method = "POST") {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(
+    const err = new Error(
       data?.message || "Something went wrong. Please try again."
     );
+    err.code = data?.code;
+    err.status = response.status;
+    throw err;
   }
 
   return data;

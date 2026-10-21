@@ -9,6 +9,7 @@ function TaskForm({ onAddTask }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -57,6 +58,7 @@ function TaskForm({ onAddTask }) {
     }
 
     setError("");
+    setErrorCode("");
     setIsSubmitting(true);
 
     try {
@@ -76,6 +78,7 @@ function TaskForm({ onAddTask }) {
       setCategory("Personal");
       removeImage();
     } catch (err) {
+      setErrorCode(err.code || "");
       setError(err.message || "Unable to add task. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -215,9 +218,18 @@ function TaskForm({ onAddTask }) {
       </form>
 
       {error && (
-        <p className="form-error" role="alert">
-          {error}
-        </p>
+        <div className="form-error" role="alert">
+          {errorCode === "TASK_LIMIT_REACHED" ? (
+            <div className="ty-limit-banner">
+              <span>⚠️ Monthly task limit reached. </span>
+              <a href="/profile" className="ty-limit-link">
+                Upgrade to Premium for 10,000 tasks →
+              </a>
+            </div>
+          ) : (
+            error
+          )}
+        </div>
       )}
     </section>
   );

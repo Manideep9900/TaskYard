@@ -129,11 +129,23 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-// POST create a task (with optional image and usage limit check)
+const RESERVE_TASK_SLOT_SQL = `
+  UPDATE users SET
+    tasks_created_this_month = CASE WHEN month_reset_at < date_trunc('month', now())
+                                    THEN 1 ELSE tasks_created_this_month + 1 END,
+    month_reset_at           = CASE WHEN month_reset_at < date_trunc('month', now())
+                                    THEN date_trunc('month', now()) ELSE month_reset_at END
+  WHERE id = $1
+    AND (CASE WHEN month_reset_at < date_trunc('month', now()) THEN 0
+              ELSE tasks_created_this_month END)
+        < (CASE WHEN plan = 'premium' THEN 10000 ELSE 100 END)
+  RETURNING tasks_created_this_month;
+`;
+
+// POST create a task (with atomic slot reservation & transaction)
 router.post(
   "/",
   authMiddleware,
-  usageLimit,
   (req, res, next) => {
     // Multer middleware handles multipart/form-data
     upload.single("image")(req, res, (err) => {
@@ -147,62 +159,78 @@ router.post(
     });
   },
   async (req, res) => {
+    const {
+      title,
+      priority = "medium",
+      due_date,
+      description = "",
+      category = "Personal",
+      status = "todo",
+    } = req.body;
+
+    if (typeof title !== "string" || !title.trim()) {
+      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
+      return res.status(400).json({
+        message: "Task title is required.",
+      });
+    }
+
+    if (title.trim().length > 200) {
+      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
+      return res.status(400).json({
+        message: "Task title cannot exceed 200 characters.",
+      });
+    }
+
+    if (!VALID_PRIORITIES.includes(priority)) {
+      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
+      return res.status(400).json({
+        message: "Priority must be low, medium, or high.",
+      });
+    }
+
+    if (!VALID_CATEGORIES.includes(category)) {
+      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
+      return res.status(400).json({
+        message: "Please select a valid category.",
+      });
+    }
+
+    if (!VALID_STATUSES.includes(status)) {
+      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
+      return res.status(400).json({
+        message: "Status must be todo, in_progress, or done.",
+      });
+    }
+
+    if (typeof description !== "string" || description.length > 5000) {
+      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
+      return res.status(400).json({
+        message: "Description must be text and cannot exceed 5000 characters.",
+      });
+    }
+
+    if (!isValidDate(due_date)) {
+      if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
+      return res.status(400).json({
+        message: "Please provide a valid due date.",
+      });
+    }
+
+    const client = await pool.connect();
+    let savedTask;
+
     try {
-      const {
-        title,
-        priority = "medium",
-        due_date,
-        description = "",
-        category = "Personal",
-        status = "todo",
-      } = req.body;
+      await client.query("BEGIN");
 
-      if (typeof title !== "string" || !title.trim()) {
+      // Atomically check and reserve monthly creation quota
+      const slot = await client.query(RESERVE_TASK_SLOT_SQL, [req.user.id]);
+      if (slot.rowCount === 0) {
+        await client.query("ROLLBACK");
         if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({
-          message: "Task title is required.",
-        });
-      }
-
-      if (title.trim().length > 200) {
-        if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({
-          message: "Task title cannot exceed 200 characters.",
-        });
-      }
-
-      if (!VALID_PRIORITIES.includes(priority)) {
-        if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({
-          message: "Priority must be low, medium, or high.",
-        });
-      }
-
-      if (!VALID_CATEGORIES.includes(category)) {
-        if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({
-          message: "Please select a valid category.",
-        });
-      }
-
-      if (!VALID_STATUSES.includes(status)) {
-        if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({
-          message: "Status must be todo, in_progress, or done.",
-        });
-      }
-
-      if (typeof description !== "string" || description.length > 5000) {
-        if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({
-          message: "Description must be text and cannot exceed 5000 characters.",
-        });
-      }
-
-      if (!isValidDate(due_date)) {
-        if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({
-          message: "Please provide a valid due date.",
+        return res.status(403).json({
+          code: "TASK_LIMIT_REACHED",
+          message: "Monthly task limit reached. Upgrade to Premium to create more.",
         });
       }
 
@@ -212,10 +240,7 @@ router.post(
         imageUrl = `/uploads/${req.file.filename}`;
       }
 
-      // Generate AI labels with OpenAI
-      const labels = await generateLabels(title.trim(), description);
-
-      const result = await pool.query(
+      const result = await client.query(
         `INSERT INTO tasks
           (title, user_id, priority, due_date, description, category, status, completed, labels, image_url)
          VALUES ($1, $2, $3, $4, $5, $6, $7::text, ($7::text = 'done'), $8, $9)
@@ -228,25 +253,34 @@ router.post(
           description,
           category,
           status,
-          labels,
+          [], // initial labels empty, updated after commit
           imageUrl,
         ]
       );
+      savedTask = result.rows[0];
 
-      // Increment user monthly usage count
-      await pool.query(
-        "UPDATE users SET tasks_created_this_month = tasks_created_this_month + 1 WHERE id = $1",
-        [req.user.id]
-      );
-
-      res.status(201).json(result.rows[0]);
+      await client.query("COMMIT");
     } catch (error) {
-      console.error("Create task error:", error);
+      await client.query("ROLLBACK").catch(() => {});
       if (req.file) {
         deleteImageFile(`/uploads/${req.file.filename}`);
       }
-      res.status(500).json({ message: "Unable to create task." });
+      console.error("Create task transaction error:", error);
+      return res.status(500).json({ message: "Unable to create task." });
+    } finally {
+      client.release();
     }
+
+    // Run AI label call AFTER commit so slow Groq request never holds a DB lock
+    generateLabels(title.trim(), description)
+      .then(async (labels) => {
+        if (Array.isArray(labels) && labels.length > 0) {
+          await pool.query("UPDATE tasks SET labels = $1 WHERE id = $2", [labels, savedTask.id]);
+        }
+      })
+      .catch((err) => console.error("AI label background update:", err.message));
+
+    res.status(201).json(savedTask);
   }
 );
 

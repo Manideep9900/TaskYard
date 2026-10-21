@@ -4090,3 +4090,41 @@ h4.completed .task-title-link {
 [data-theme="dark"] .ty-file-choose-btn:hover {
   background: #2a434f;
 }
+
+
+/* Upgrade 4: Limit Reached Banner */
+.ty-limit-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ty-limit-link {
+  color: #4f46e5;
+  font-weight: 700;
+  text-decoration: underline;
+  margin-left: auto;
+}
+
+.ty-limit-link:hover {
+  color: #3730a3;
+}
+
+[data-theme="dark"] .ty-limit-banner {
+  background: #451a1a;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .ty-limit-link {
+  color: #818cf8;
+}

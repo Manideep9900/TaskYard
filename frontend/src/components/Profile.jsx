@@ -138,6 +138,15 @@ function Profile({ user, onLogout }) {
 
         {error && <p className="error-message ty-error">{error}</p>}
 
+        {/* Top Guarantee Banner (Screenshot 5) */}
+        <div className="ty-peeky-banner">
+          <span className="ty-banner-lock-icon">🔒</span>
+          <div className="ty-banner-copy">
+            <strong>When the month ends, nothing is taken away</strong>
+            <p>Your tasks stay visible, searchable, copyable and exportable — forever. Upgrading unlocks 10,000 tasks/mo, AI labeling, and full PostgreSQL BYTEA image storage.</p>
+          </div>
+        </div>
+
         {/* User Card */}
         <section className="ty-profile-card">
           <div className="ty-profile-card-header">
@@ -243,29 +252,42 @@ function Profile({ user, onLogout }) {
               </div>
             </div>
 
-            {/* Pro Plan Card */}
+            {/* Pro Plan Card (Screenshot 5 Dark Card) */}
             <div className={`ty-pricing-card ty-pricing-pro ${profile?.plan === "premium" ? "is-current" : ""}`}>
-              <div className="ty-pricing-pro-glow" aria-hidden="true" />
               <div className="ty-pricing-card-top">
-                <div className="ty-pricing-badge-row">
-                  <span className="ty-pricing-pill ty-pill-blue">PRO</span>
-                  <span className="ty-pricing-pill ty-pill-pink">POPULAR</span>
-                </div>
-                <h3 className="ty-pricing-title">Premium</h3>
+                <span className="ty-pricing-tag-sub">Personal</span>
                 <div className="ty-pricing-cost">
                   <span className="ty-price-amount">$9.99</span>
-                  <span className="ty-price-period">/ month</span>
+                  <span className="ty-price-original">$19.99</span>
                 </div>
-                <p className="ty-pricing-sub">For high performers and power organizers</p>
+                <div className="ty-pricing-badge-row">
+                  <span className="ty-pricing-pill ty-pill-yellow">⚡ Launch price - save 50%</span>
+                </div>
+                <p className="ty-pricing-sub">once, yours for good each month</p>
+                <p className="ty-pricing-tagline">
+                  One subscription for your personal workflow on all devices.
+                </p>
               </div>
 
               <ul className="ty-pricing-features">
-                <li><span className="ty-feature-check">✓</span> <strong>10,000 tasks/month</strong> (100x capacity)</li>
-                <li><span className="ty-feature-check">✓</span> <strong>OpenAI & Groq AI labeling</strong> automatically</li>
-                <li><span className="ty-feature-check">✓</span> High-res attachments in Postgres BYTEA</li>
-                <li><span className="ty-feature-check">✓</span> Self-service Stripe portal for billing & invoices</li>
-                <li><span className="ty-feature-check">✓</span> Priority support & early feature access</li>
+                <li><span className="ty-feature-check">✓</span> <strong>10,000 tasks per month</strong> quota</li>
+                <li><span className="ty-feature-check">✓</span> Instant AI task labels via Groq & OpenAI</li>
+                <li><span className="ty-feature-check">✓</span> PostgreSQL BYTEA image storage & preview</li>
+                <li><span className="ty-feature-check">✓</span> Self-service Stripe billing portal</li>
+                <li><span className="ty-feature-check">✓</span> Automatic clean-up & zero bloat</li>
               </ul>
+
+              {/* Launch Seats Bar (Screenshot 5) */}
+              <div className="ty-launch-seats-box">
+                <div className="ty-launch-seats-label">
+                  <strong>27 of 50 launch seats left</strong>
+                  <span>23 claimed</span>
+                </div>
+                <div className="ty-launch-seats-dots" aria-hidden="true">
+                  <div className="ty-seats-bar-fill" style={{ width: "46%" }} />
+                </div>
+                <small className="ty-launch-seats-note">Then $19.99 for everyone after.</small>
+              </div>
 
               <div className="ty-pricing-action">
                 {profile?.plan === "premium" ? (
@@ -284,7 +306,7 @@ function Profile({ user, onLogout }) {
                     onClick={handleUpgrade}
                     disabled={Boolean(actionLoading)}
                   >
-                    {actionLoading === "upgrade" ? "Redirecting to Stripe…" : "⭐ Upgrade to Pro"}
+                    {actionLoading === "upgrade" ? "Redirecting to Stripe…" : "Claim Launch Seat · $9.99/mo"}
                   </button>
                 )}
               </div>

@@ -343,291 +343,237 @@ function Dashboard({
   );
 
   return (
-    <div className="app ty-dashboard" data-theme={theme}>
-      <aside className="ty-sidebar">
-        <Link
-          className="ty-brand"
-          to="/dashboard"
-          onClick={(e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        >
-          <span className="ty-brand-mark">✓</span>
-          <span>
-            Task<span>Yard</span>
-            <small>YOUR DAILY WORKSPACE</small>
-          </span>
-        </Link>
-        <p className="ty-nav-label">WORKSPACE</p>
-        <nav className="ty-nav" aria-label="Main navigation">
-          <button
-            className={`ty-nav-item ${view === "list" ? "active" : ""}`}
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    <div className="app ty-peeky-app" data-theme={theme}>
+      {/* Sticky Peeky Top Navbar */}
+      <header className="ty-peeky-navbar">
+        <div className="ty-navbar-inner">
+          <Link
+            className="ty-navbar-brand"
+            to="/dashboard"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           >
-            <span>⌂</span> Dashboard
-          </button>
-          <button className="ty-nav-item" onClick={() => jumpToTasks("all")}>
-            <span>▤</span> My tasks <b>{activeTasks}</b>
-          </button>
-          <button
-            className={`ty-nav-item ${view === "board" ? "active" : ""}`}
-            onClick={openBoard}
-          >
-            <span>▦</span> Board <b>{inProgressTasks}</b>
-          </button>
-          <button className="ty-nav-item" onClick={() => jumpToTasks("upcoming")}>
-            <span>◷</span> Upcoming <b>{upcomingTasks}</b>
-          </button>
-          <button className="ty-nav-item" onClick={() => jumpToTasks("completed")}>
-            <span>✓</span> Completed
-          </button>
-          <button className="ty-nav-item" onClick={() => jumpToTasks("overdue")}>
-            <span>⚑</span> Overdue <b className="ty-nav-danger">{overdueTasks}</b>
-          </button>
-          <button
-            className="ty-nav-item"
-            onClick={() => navigate("/profile")}
-            style={{ marginTop: "12px", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "10px" }}
-          >
-            <span>👤</span> Profile & Billing
-          </button>
-        </nav>
-        <div className="ty-sidebar-bottom">
-          <div className="ty-sidebar-tip">
-            <span>✦</span>
-            <strong>Small steps add up.</strong>
-            <p>Keep moving forward, one task at a time.</p>
-          </div>
-          <button
-            className="ty-profile"
-            onClick={() => navigate("/profile")}
-            title="View Profile & Billing"
-          >
-            <span className="ty-avatar">
-              {user.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={user.name}
-                  referrerPolicy="no-referrer"
-                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-                />
-              ) : (
-                (user.name || user.email || "U").charAt(0).toUpperCase()
-              )}
+            <span className="ty-brand-icon-stack">
+              <span className="ty-icon-layer layer-1" />
+              <span className="ty-icon-layer layer-2" />
+              <span className="ty-icon-layer layer-3" />
             </span>
-            <span className="ty-profile-text">
-              <strong>{user.name || "Your account"}</strong>
-              <small>
-                {user.plan === "premium" ? "⭐ Premium" : "Free Plan"} · Profile
-              </small>
+            <span className="ty-brand-name">
+              Task<strong>Yard</strong>
             </span>
-            <span className="ty-logout-icon">→</span>
-          </button>
-        </div>
-      </aside>
+          </Link>
 
-      <main className="ty-main" id="dashboard">
-        {/* Desktop Simulation titlebar strip */}
-        <div className="ty-desktop-titlebar" aria-hidden="true">
-          <div className="ty-desktop-dots">
-            <span className="ty-window-dot dot-red" />
-            <span className="ty-window-dot dot-yellow" />
-            <span className="ty-window-dot dot-green" />
-          </div>
-          <div className="ty-desktop-window-title">
-            <span className="ty-desktop-app-name">TaskYard</span>
-            <span className="ty-desktop-sep">/</span>
-            <span className="ty-desktop-sub">Deep Stealth Workspace</span>
-          </div>
-          <div className="ty-desktop-system-status">
-            <span className="ty-desktop-indicator" />
-            <span>Active Sync</span>
+          <nav className="ty-navbar-links" aria-label="Main navigation">
+            <button
+              className={`ty-nav-link ${view === "list" ? "active" : ""}`}
+              onClick={() => {
+                setView("list");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              Dashboard
+            </button>
+            <button
+              className="ty-nav-link"
+              onClick={() => jumpToTasks("all")}
+            >
+              My tasks <span className="ty-badge-count">{activeTasks}</span>
+            </button>
+            <button
+              className={`ty-nav-link ${view === "board" ? "active" : ""}`}
+              onClick={openBoard}
+            >
+              Board <span className="ty-badge-count">{inProgressTasks}</span>
+            </button>
+            <button
+              className="ty-nav-link"
+              onClick={() => jumpToTasks("upcoming")}
+            >
+              Upcoming {upcomingTasks > 0 && <span className="ty-badge-count">{upcomingTasks}</span>}
+            </button>
+            <button
+              className="ty-nav-link"
+              onClick={() => navigate("/profile")}
+            >
+              Pricing
+            </button>
+          </nav>
+
+          <div className="ty-navbar-right">
+            <button
+              className="ty-navbar-profile-btn"
+              onClick={() => navigate("/profile")}
+              title="View Account & Plan"
+            >
+              <span className="ty-avatar-mini">
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.name}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  (user.name || user.email || "U").charAt(0).toUpperCase()
+                )}
+              </span>
+              <span className="ty-user-mini-name">{user.name?.split(" ")[0] || "Account"}</span>
+              <span className={`ty-plan-mini-pill ${user.plan === "premium" ? "pill-pro" : "pill-free"}`}>
+                {user.plan === "premium" ? "PRO" : "FREE"}
+              </span>
+            </button>
+
+            <button
+              className="ty-pill-btn-black"
+              onClick={() => {
+                document.getElementById("create-task")?.scrollIntoView({ behavior: "smooth" });
+                document.getElementById("task-title")?.focus();
+              }}
+            >
+              + New task
+            </button>
+
+            <button className="ty-icon-btn-ghost" onClick={logout} title="Log out">
+              Log out ↗
+            </button>
           </div>
         </div>
+      </header>
 
+      <main className="ty-main-wrap" id="dashboard">
         {successMessage && (
           <div className="success-notification" role="status">
             ✓ &nbsp;{successMessage}
           </div>
         )}
-        <header className="ty-topbar">
-          <div>
-            <p className="ty-eyebrow">YOUR PERSONAL WORKSPACE</p>
-            <h1>
-              Good to see you, {user.name?.split(" ")[0] || "there"} <span>✦</span>
-            </h1>
-            <p className="ty-subtitle">
-              Here's what's happening with your tasks today.
+
+        {/* Hero Section (Screenshot 1) */}
+        <section className="ty-hero-section">
+          <div className="ty-hero-pill-badge">
+            <span className="ty-badge-tag">New in 2.0</span>
+            <span className="ty-badge-text">AI labels, BYTEA storage & instant sync</span>
+          </div>
+
+          <h1 className="ty-hero-title">
+            Task management that lives on the edge of your workflow.
+          </h1>
+
+          <p className="ty-hero-subtitle">
+            Capture thoughts and tasks in seconds, organize with AI, and keep moving forward with zero clutter.
+          </p>
+
+          <div className="ty-hero-actions">
+            <button
+              className="ty-hero-btn-primary"
+              onClick={() => {
+                document.getElementById("create-task")?.scrollIntoView({ behavior: "smooth" });
+                document.getElementById("task-title")?.focus();
+              }}
+            >
+              Start adding tasks
+            </button>
+            <button className="ty-hero-btn-secondary" onClick={openBoard}>
+              See how board works
+            </button>
+          </div>
+
+          <div className="ty-hero-proof">
+            <div className="ty-proof-avatars">
+              <span className="ty-avatar-dot dot-yellow" />
+              <span className="ty-avatar-dot dot-blue" />
+              <span className="ty-avatar-dot dot-pink" />
+              <span className="ty-avatar-dot dot-green" />
+            </div>
+            <span className="ty-proof-text">
+              <strong>{totalTasks} tasks</strong> in workspace · {user.plan === "premium" ? "⭐ 10,000 monthly quota" : "100 monthly free tasks"} · Synced with Neon DB
+            </span>
+          </div>
+        </section>
+
+        {/* Ticker / Feature Ribbon (Screenshot 2) */}
+        <div className="ty-ticker-ribbon" aria-hidden="true">
+          <div className="ty-ticker-track">
+            <span><i className="dot dot-yellow" /> Instant search</span>
+            <span><i className="dot dot-blue" /> AI label categorization</span>
+            <span><i className="dot dot-pink" /> Drag & drop Kanban</span>
+            <span><i className="dot dot-green" /> PostgreSQL BYTEA attachments</span>
+            <span><i className="dot dot-yellow" /> Atomic monthly quota</span>
+            <span><i className="dot dot-blue" /> Stripe subscriptions</span>
+            <span><i className="dot dot-pink" /> 100% private</span>
+            <span><i className="dot dot-green" /> Zero clutter</span>
+          </div>
+        </div>
+
+        {/* Metrics Grid Section (Screenshot 4) */}
+        <section className="ty-metrics-section">
+          <div className="ty-section-header-center">
+            <h2 className="ty-metrics-heading">Focused execution, zero lag.</h2>
+            <p className="ty-metrics-sub">
+              TaskYard spends most of its time staying out of your way — and that's the point.
+              It stays lightweight, responsive, and ready the moment you need it.
             </p>
           </div>
-          <div className="ty-topbar-actions">
-            <span className="ty-date">
-              ◷ &nbsp;
-              {new Date().toLocaleDateString(undefined, {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-            <button
-              className="ty-logout-button"
-              type="button"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            >
-              {theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode"}
-            </button>
-            <button
-              className="ty-logout-button"
-              type="button"
-              onClick={() => navigate("/profile")}
-            >
-              Profile 👤
-            </button>
-            <button className="ty-logout-button" onClick={logout}>
-              Log out ↗
-            </button>
+
+          <div className="ty-metrics-grid">
+            <div className="ty-metric-card">
+              <div className="ty-metric-number">{totalTasks} <span>tasks</span></div>
+              <div className="ty-metric-title">Total tracked</div>
+              <p className="ty-metric-desc">Organized across your categories.</p>
+            </div>
+
+            <div className="ty-metric-card">
+              <div className="ty-metric-number">{inProgressTasks} <span>active</span></div>
+              <div className="ty-metric-title">In progress</div>
+              <p className="ty-metric-desc">Tasks currently in motion.</p>
+            </div>
+
+            <div className="ty-metric-card">
+              <div className="ty-metric-number">{completionPercent}<span>%</span></div>
+              <div className="ty-metric-title">Completed rate</div>
+              <p className="ty-metric-desc">{completedTasks} finished tasks.</p>
+            </div>
+
+            <div className="ty-metric-card">
+              <div className="ty-metric-number">{overdueTasks > 0 ? overdueTasks : "0"} <span>alerts</span></div>
+              <div className="ty-metric-title">Overdue items</div>
+              <p className="ty-metric-desc">
+                {overdueTasks > 0 ? "Review tasks past due date." : "You're all caught up!"}
+              </p>
+            </div>
           </div>
-        </header>
+        </section>
 
         {error && <p className="error-message ty-error">{error}</p>}
         {loading && <p className="status-message">Loading your tasks…</p>}
 
-        <section className="ty-stat-grid" aria-label="Task summary">
-          <article className="ty-stat-card">
-            <span className="ty-stat-icon ty-icon-purple">▤</span>
-            <span className="ty-stat-label">Total tasks</span>
-            <strong>{totalTasks}</strong>
-            <small>Across all categories</small>
-          </article>
-          <article className="ty-stat-card">
-            <span className="ty-stat-icon ty-icon-blue">◷</span>
-            <span className="ty-stat-label">In progress</span>
-            <strong>{inProgressTasks}</strong>
-            <small>Tasks to keep moving</small>
-          </article>
-          <article className="ty-stat-card">
-            <span className="ty-stat-icon ty-icon-green">✓</span>
-            <span className="ty-stat-label">Completed</span>
-            <strong>{completedTasks}</strong>
-            <small>Nice work so far</small>
-          </article>
-          <article className="ty-stat-card">
-            <span className="ty-stat-icon ty-icon-orange">⚑</span>
-            <span className="ty-stat-label">Overdue</span>
-            <strong>{overdueTasks}</strong>
-            <small>Need your attention</small>
-          </article>
-        </section>
-
-        <section className="ty-overview-grid">
-          <article className="ty-panel ty-progress-panel">
-            <div className="ty-panel-heading">
-              <div>
-                <p className="ty-eyebrow">YOUR MOMENTUM</p>
-                <h2>Task completion</h2>
-              </div>
-              <span className="ty-pill">All time</span>
-            </div>
-            <div className="ty-progress-content">
-              <div className="ty-ring" style={{ "--progress": `${completionPercent}%` }}>
-                <div className="ty-ring-inner">
-                  <strong>{completionPercent}%</strong>
-                  <span>completed</span>
-                </div>
-              </div>
-              <div className="ty-progress-copy">
-                <h3>
-                  {completionPercent === 100 && totalTasks
-                    ? "Everything done!"
-                    : completionPercent >= 60
-                      ? "You're doing great!"
-                      : "Every task counts."}
-                </h3>
-                <p>
-                  {completedTasks} of {totalTasks} tasks completed. Keep your
-                  momentum going.
-                </p>
-                <div className="ty-legend">
-                  <span>
-                    <i className="ty-dot ty-dot-green" /> Completed{" "}
-                    <b>{completedTasks}</b>
-                  </span>
-                  <span>
-                    <i className="ty-dot ty-dot-purple" /> In progress{" "}
-                    <b>{inProgressTasks}</b>
-                  </span>
-                </div>
-                <button className="ty-text-button" onClick={openBoard}>
-                  Open the board <span>→</span>
-                </button>
-              </div>
-            </div>
-          </article>
-          <article className="ty-panel ty-deadline-panel">
-            <div className="ty-panel-heading">
-              <div>
-                <p className="ty-eyebrow">STAY ON TRACK</p>
-                <h2>Coming up next</h2>
-              </div>
-              <span className="ty-stat-icon ty-icon-blue">◷</span>
-            </div>
-            <p className="ty-panel-description">
-              Your open tasks due within the next 3 days.
-            </p>
-            <div className="ty-deadline-number">
-              {upcomingTasks}
-              <span> upcoming {upcomingTasks === 1 ? "task" : "tasks"}</span>
-            </div>
-            <div className="ty-mini-track">
-              <span
-                style={{
-                  width: `${totalTasks ? Math.min(100, (upcomingTasks / totalTasks) * 100) : 0}%`,
-                }}
-              />
-            </div>
-            <button
-              className="ty-secondary-button"
-              onClick={() => jumpToTasks("upcoming")}
-            >
-              Review upcoming tasks <span>→</span>
-            </button>
-            <div className="ty-deadline-footer">
-              <span className="ty-dot ty-dot-orange" />{" "}
-              {overdueTasks
-                ? `${overdueTasks} overdue — review when you can`
-                : "You're all caught up on overdue tasks"}
-            </div>
-          </article>
-        </section>
-
-        <section className="ty-panel ty-create-panel" id="create-task">
-          <div className="ty-panel-heading">
+        {/* Create Task Card */}
+        <section className="ty-card-section ty-create-panel" id="create-task">
+          <div className="ty-card-header">
             <div>
               <p className="ty-eyebrow">MAKE IT HAPPEN</p>
               <h2>Create a task</h2>
-              <p className="ty-panel-description">
+              <p className="ty-card-description">
                 Add the next thing you want to get done. AI labels and image attachments supported!
               </p>
             </div>
-            <span className="ty-create-mark">＋</span>
           </div>
           <div className="ty-task-form-wrap">
             <TaskForm onAddTask={addTask} />
           </div>
         </section>
 
+        {/* Task List / Board Workspace (Screenshot 3) */}
         <section
-          className="ty-panel ty-tasks-panel"
+          className="ty-card-section ty-tasks-panel"
           id="tasks-section"
           ref={tasksSectionRef}
         >
-          <div className="ty-panel-heading ty-tasks-heading">
+          <div className="ty-card-header ty-tasks-heading">
             <div>
               <p className="ty-eyebrow">YOUR WORK, ORGANIZED</p>
               <h2>
-                {view === "board" ? "Board" : "My tasks"}{" "}
+                {view === "board" ? "Board View" : "All Tasks"}{" "}
                 <span className="ty-count-pill">
                   {view === "board" ? boardTasks.length : sortedTasks.length}
                 </span>

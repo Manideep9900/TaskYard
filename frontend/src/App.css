@@ -3333,16 +3333,58 @@ textarea {
   padding: 0 12px;
 }
 
-/* Task Title Link */
-.task-title-link {
-  color: inherit;
+/* Task Title Link (Upgrade 1: contrast in dark & light mode) */
+.task-card-content h3 a,
+.task-card-content h3 a:visited,
+.ty-board-card h4 a,
+.ty-board-card h4 a:visited,
+.task-title-link,
+.task-title-link:visited {
+  color: var(--ty-text, #172033);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
+.task-card-content h3 a:hover,
+.ty-board-card h4 a:hover,
 .task-title-link:hover {
-  color: #4f46e5;
+  color: #138b97;
   text-decoration: underline;
+}
+
+/* completed tasks stay readable but muted */
+.task-card-content h3.completed a,
+.task-card-content h3.completed a:visited,
+.ty-board-card h4.completed a,
+.ty-board-card h4.completed a:visited,
+h3.completed .task-title-link,
+h4.completed .task-title-link {
+  color: var(--ty-muted-text, #94a3b8) !important;
+  text-decoration: line-through;
+}
+
+/* Dark mode explicit high-contrast overrides */
+[data-theme="dark"] .task-card-content h3 a,
+[data-theme="dark"] .task-card-content h3 a:visited,
+[data-theme="dark"] .ty-board-card h4 a,
+[data-theme="dark"] .ty-board-card h4 a:visited,
+[data-theme="dark"] .task-title-link,
+[data-theme="dark"] .task-title-link:visited {
+  color: #e5f0f3 !important;
+}
+
+[data-theme="dark"] .task-card-content h3 a:hover,
+[data-theme="dark"] .ty-board-card h4 a:hover,
+[data-theme="dark"] .task-title-link:hover {
+  color: #65bfc3 !important;
+  text-decoration: underline;
+}
+
+[data-theme="dark"] .task-card-content h3.completed a,
+[data-theme="dark"] .ty-board-card h4.completed a,
+[data-theme="dark"] h3.completed .task-title-link,
+[data-theme="dark"] h4.completed .task-title-link {
+  color: #a0b5bf !important;
 }
 
 /* AI Labels */

@@ -33,7 +33,29 @@ router.post("/create-checkout", authMiddleware, async (req, res) => {
     const user = userResult.rows[0];
 
     if (user.plan === "premium") {
-      return res.status(400).json({ message: "You are already on the premium plan." });
+      // Check Stripe to see if the user really has an active subscription
+      if (user.stripe_customer_id) {
+        try {
+          const subs = await stripe.subscriptions.list({
+            customer: user.stripe_customer_id,
+            status: "active",
+            limit: 1,
+          });
+          if (subs.data.length > 0) {
+            return res.status(400).json({ message: "You are already on the premium plan." });
+          }
+          // No active subscription in Stripe: DB plan was stale, reset to free and proceed
+          await pool.query("UPDATE users SET plan = 'free' WHERE id = $1", [userId]);
+          user.plan = "free";
+        } catch (err) {
+          console.warn("Stripe subscription check warning:", err.message);
+          return res.status(400).json({ message: "You are already on the premium plan." });
+        }
+      } else {
+        // No Stripe customer ID but marked premium: reset to free and proceed
+        await pool.query("UPDATE users SET plan = 'free' WHERE id = $1", [userId]);
+        user.plan = "free";
+      }
     }
 
     let customerId = user.stripe_customer_id;

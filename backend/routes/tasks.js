@@ -3,7 +3,6 @@ const router = express.Router();
 
 const pool = require("../db");
 const authMiddleware = require("../middleware/authMiddleware");
-const usageLimit = require("../middleware/usageLimit");
 const { upload, detectImageType } = require("../middleware/upload");
 
 const VALID_PRIORITIES = ["low", "medium", "high"];
@@ -44,7 +43,35 @@ function parseLabels(text) {
   }
 }
 
-// Helper: generate AI labels using Groq or OpenAI with timeout & defensive parsing
+// Resilient keyword-based heuristic fallback
+function heuristicLabels(title, description) {
+  const text = `${title || ""} ${description || ""}`.toLowerCase();
+  const labels = [];
+
+  const rules = [
+    { match: /\b(meet|meeting|sync|call|standup|interview|discussion)\b/, label: "meeting" },
+    { match: /\b(bug|fix|error|issue|crash|patch|debug)\b/, label: "bug" },
+    { match: /\b(pay|invoice|bill|stripe|checkout|salary|money|subscription)\b/, label: "finance" },
+    { match: /\b(study|learn|exam|assignment|class|homework|college|read)\b/, label: "study" },
+    { match: /\b(urgent|asap|priority|important|critical|deadline|today)\b/, label: "urgent" },
+    { match: /\b(design|ui|ux|css|figma|layout|logo|theme)\b/, label: "design" },
+    { match: /\b(test|qa|verify|check|spec)\b/, label: "qa" },
+    { match: /\b(doc|docs|documentation|readme|write|report)\b/, label: "documentation" },
+    { match: /\b(deploy|release|prod|docker|ci|render|git)\b/, label: "devops" },
+    { match: /\b(clean|refactor|optimize|perf|speed)\b/, label: "maintenance" },
+  ];
+
+  for (const { match, label } of rules) {
+    if (match.test(text)) {
+      labels.push(label);
+      if (labels.length >= 3) break;
+    }
+  }
+
+  return labels.length > 0 ? labels : ["general"];
+}
+
+// Helper: generate AI labels using OpenAI first, then Groq as fallback, with heuristic fallback
 async function generateLabels(title, description) {
   try {
     const OpenAI = require("openai");
@@ -54,21 +81,18 @@ async function generateLabels(title, description) {
     const groqKey = process.env.GROQ_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
 
-    if (groqKey && groqKey !== "YOUR_GROQ_API_KEY_HERE") {
+    if (openaiKey && openaiKey !== "YOUR_OPENAI_API_KEY_HERE") {
+      client = new OpenAI({ apiKey: openaiKey, timeout: 8000 });
+      model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+    } else if (groqKey && groqKey !== "YOUR_GROQ_API_KEY_HERE") {
       client = new OpenAI({
         apiKey: groqKey,
         baseURL: "https://api.groq.com/openai/v1",
-        timeout: 8000, // 8-second timeout
-      });
-      model = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
-    } else if (openaiKey && openaiKey !== "YOUR_OPENAI_API_KEY_HERE") {
-      client = new OpenAI({
-        apiKey: openaiKey,
         timeout: 8000,
       });
-      model = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
+      model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
     } else {
-      return [];
+      return heuristicLabels(title, description);
     }
 
     const response = await client.chat.completions.create({
@@ -89,10 +113,11 @@ async function generateLabels(title, description) {
     });
 
     const content = response.choices[0]?.message?.content?.trim() || "";
-    return parseLabels(content);
+    const parsed = parseLabels(content);
+    return parsed.length > 0 ? parsed : heuristicLabels(title, description);
   } catch (error) {
     console.error("AI label generation notice:", error.message);
-    return [];
+    return heuristicLabels(title, description);
   }
 }
 
@@ -485,7 +510,7 @@ router.get("/:id/image", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE remove image attachment from task without deleting the task
+// DELETE remove image attachment from task without deleting the task (single ownership-checked statement)
 router.delete("/:id/image", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -493,16 +518,15 @@ router.delete("/:id/image", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invalid task ID." });
     }
 
-    const check = await pool.query(
-      "SELECT id FROM tasks WHERE id = $1 AND user_id = $2",
+    const r = await pool.query(
+      `DELETE FROM task_images ti USING tasks t
+       WHERE ti.task_id = t.id AND t.id = $1 AND t.user_id = $2`,
       [id, req.user.id]
     );
-    if (check.rows.length === 0) {
-      return res.status(404).json({ message: "Task not found." });
-    }
 
-    await pool.query("DELETE FROM task_images WHERE task_id = $1", [id]);
-    await pool.query("UPDATE tasks SET image_url = NULL WHERE id = $1", [id]);
+    if (r.rowCount === 0) {
+      return res.status(404).json({ message: "Image not found." });
+    }
 
     res.json({ message: "Image removed successfully.", taskId: Number(id) });
   } catch (error) {

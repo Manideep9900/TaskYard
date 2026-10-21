@@ -129,36 +129,38 @@ router.post("/google", async (req, res) => {
     }
 
     const client = getGoogleClient();
-    let googleId, email, name, picture;
 
     if (!client) {
-      // Decode JWT payload without verification if client ID is placeholder
-      // (helpful for testing, but in production with valid client ID it verifies)
-      const decoded = jwt.decode(credential);
-      if (!decoded || !decoded.sub) {
-        return res.status(400).json({ message: "Invalid Google credential." });
-      }
-      googleId = decoded.sub;
-      email = decoded.email;
-      name = decoded.name;
-      picture = decoded.picture;
-    } else {
-      const ticket = await client.verifyIdToken({
-        idToken: credential,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      googleId = payload.sub;
-      email = payload.email;
-      name = payload.name;
-      picture = payload.picture;
+      return res.status(503).json({ message: "Google login is not configured." });
     }
 
-    // Check if user exists by google_id or email
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload.email || !payload.email_verified) {
+      return res.status(401).json({ message: "Google account email is not verified." });
+    }
+
+    const googleId = payload.sub;
+    const email = payload.email;
+    const name = payload.name;
+    const picture = payload.picture;
+
+    // Check if user exists by google_id first, then fall back to email match
     let userResult = await pool.query(
-      "SELECT * FROM users WHERE google_id = $1 OR email = $2",
-      [googleId, email]
+      "SELECT * FROM users WHERE google_id = $1",
+      [googleId]
     );
+
+    if (userResult.rows.length === 0) {
+      userResult = await pool.query(
+        "SELECT * FROM users WHERE email = $1",
+        [email]
+      );
+    }
 
     let user;
 

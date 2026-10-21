@@ -8,7 +8,6 @@
 
 - **Demo:** [taskyard-fronten.onrender.com](https://taskyard-fronten.onrender.com)
 
-
 > ⏳ **Note:** The backend is hosted on Render's free tier and spins down when idle. The first request after a period of inactivity may take **30–50 seconds** to wake up.
 
 ---
@@ -28,13 +27,14 @@
 - **Dual Sign-In:** Register and log in using standard email/password or one-click **Google OAuth 2.0**.
 - **Cryptographic Security:** Passwords hashed with `bcrypt`; stateless session management with JWT tokens.
 - **Row-Level User Isolation:** Every database operation is strictly scoped to `req.user.id`.
+- **Verified Identity:** Google OAuth strictly requires verified email (`email_verified: true`) and prevents unconfigured bypasses.
 - **Password Visibility Toggle:** Show/hide password button inside credential inputs.
 
-### 🤖 3. AI-Powered Auto-Labeling (Groq & OpenAI)
-- **Multi-Provider Support:** Supports high-speed inference via **Groq** (`llama-3.3-70b-versatile`) using OpenAI-compatible endpoints, as well as native **OpenAI** (`gpt-4o-mini`).
-- **Contextual Categorization:** Automatically scans task titles and descriptions to assign smart classification tags (e.g., `career`, `urgency`, `meeting`).
+### 🤖 3. AI-Powered Auto-Labeling (OpenAI & Groq)
+- **Multi-Provider Support:** Uses **OpenAI** (`gpt-4o-mini`) as the primary labeling engine with seamless fallback to **Groq** (`llama-3.3-70b-versatile`) via its OpenAI-compatible endpoint.
+- **Contextual Categorization:** Automatically scans task titles and descriptions to assign smart classification tags (e.g., `career`, `urgency`, `meeting`, `finance`, `bug`).
 - **One-Click Regeneration:** Regenerate labels anytime from the Task Detail view.
-- **Resilient Fallback:** Automatically defaults to intelligent heuristic rule-based tagging if AI API keys are unavailable.
+- **Resilient Fallback:** Automatically defaults to an intelligent keyword-based heuristic fallback (`heuristicLabels()`) if API keys are missing or provider requests fail.
 
 ### 📎 4. Persistent PostgreSQL BYTEA Image Storage
 - **Direct Database Persistence:** Images are stored directly in PostgreSQL (`BYTEA` column in `task_images`), eliminating reliance on ephemeral server disks that get wiped on deploy/restart.
@@ -42,6 +42,7 @@
 - **Authenticated Streaming Route:** `GET /tasks/:id/image` streams images securely with `Content-Type` headers and client caching.
 - **`<AuthImage />` Component:** Custom frontend image component handling bearer token injection, animated skeleton loading, and graceful error fallbacks.
 - **Automated Cascade Deletion:** Foreign key constraints (`ON DELETE CASCADE`) guarantee that deleting a task automatically cleans up its image data.
+- **Single-Query Image Removal:** `DELETE /tasks/:id/image` uses a single ownership-checked statement without redundant table updates.
 
 ### 📊 5. Atomic Monthly Quota Enforcement
 - **Plan Limits:**
@@ -53,6 +54,7 @@
 
 ### 💳 6. Stripe Subscriptions & Webhook Automation
 - **Stripe Checkout Integration:** Creates checkout sessions linked to users via `client_reference_id` and reusable `stripe_customer_id`.
+- **Active Subscription Verification:** Verifies customer subscription status in Stripe before refusing checkout to handle stale local plan states.
 - **Cryptographic Webhook Verification:** `POST /webhook/stripe` registered with `express.raw({ type: "application/json" })` before `express.json()` to verify signatures via `stripe.webhooks.constructEvent`.
 - **Full Subscription Lifecycle Handling:**
   - `checkout.session.completed` → Instantly elevates user to `premium` plan and links customer ID.
@@ -68,7 +70,7 @@
 | Layer | Technologies |
 |---|---|
 | **Frontend** | React 19, Vite 8, React Router 7, `@dnd-kit/core`, `@react-oauth/google`, CSS Variables |
-| **Backend** | Node.js, Express 5, `pg` (node-postgres), JWT, bcrypt, `multer`, Stripe Node SDK, OpenAI/Groq SDK |
+| **Backend** | Node.js, Express 5, `pg` (node-postgres), JWT, bcrypt, `multer`, Stripe Node SDK, OpenAI SDK |
 | **Database** | PostgreSQL on Neon (Serverless Postgres with SSL verification) |
 | **Hosting** | Render (Web Services & Static Sites) |
 
@@ -83,7 +85,7 @@ TaskYard/
 │   │   ├── authMiddleware.js      # JWT authentication and user extraction
 │   │   └── upload.js              # Multer memory storage with 1MB cap & MIME validation
 │   ├── routes/
-│   │   ├── auth.js                # Login, register, Google OAuth, and profile routes
+│   │   ├── auth.js                # Login, register, verified Google OAuth, and profile routes
 │   │   ├── billing.js             # Stripe checkout session and customer portal
 │   │   ├── tasks.js               # Task CRUD, BYTEA image streaming, and AI labeling
 │   │   └── webhook.js             # Stripe webhook handler with signature checks
@@ -189,8 +191,8 @@ CREATE TABLE task_images (
 | `PATCH` | `/tasks/:id/status`| Yes | Update Kanban status (`todo`, `in_progress`, `done`) with sync |
 | `DELETE`| `/tasks/:id` | Yes | Delete task and cascades to attached image |
 | `GET` | `/tasks/:id/image` | Yes | Stream binary image with MIME headers from PostgreSQL |
-| `DELETE`| `/tasks/:id/image` | Yes | Remove image attachment from task |
-| `POST` | `/tasks/:id/labels`| Yes | Generate AI task labels using Groq / OpenAI |
+| `DELETE`| `/tasks/:id/image` | Yes | Remove image attachment from task (single ownership-checked query) |
+| `POST` | `/tasks/:id/labels`| Yes | Generate AI task labels using OpenAI / Groq / Heuristics |
 
 ### Billing & Stripe (`/billing` & `/webhook`)
 | Method | Endpoint | Auth Required | Description |
@@ -207,7 +209,7 @@ CREATE TABLE task_images (
 - Node.js 18+ installed
 - PostgreSQL database (or free [Neon Serverless Postgres](https://neon.tech))
 - Stripe account (for billing)
-- Groq or OpenAI API key (for AI labeling)
+- OpenAI or Groq API key (for AI labeling)
 - Google Cloud OAuth Client ID (optional, for Google Sign-In)
 
 ---
@@ -230,9 +232,11 @@ PORT=3000
 DATABASE_URL=postgresql://user:password@ep-sample-pool.neon.tech/neondb?sslmode=require
 JWT_SECRET=super_secret_jwt_passphrase
 
-# AI Configuration (Groq or OpenAI)
-GROQ_API_KEY=gsk_your_groq_api_key_here
+# AI Configuration (OpenAI primary, Groq fallback)
 OPENAI_API_KEY=sk-your_openai_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+GROQ_API_KEY=gsk_your_groq_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
 
 # Stripe Configuration
 STRIPE_SECRET_KEY=sk_test_your_secret_key

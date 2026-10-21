@@ -1010,6 +1010,7 @@ kbd, .ty-kbd {
 /* Pastel tags and badges */
 .task-card-meta > span,
 .task-ai-label-pill,
+.task-ai-label,
 .ty-count-pill,
 .ty-pricing-pill {
   display: inline-flex;
@@ -1055,7 +1056,8 @@ kbd, .ty-kbd {
   color: #15803d !important;
 }
 
-.task-ai-label-pill {
+.task-ai-label-pill,
+.task-ai-label {
   background: #f3f4f6;
   color: #374151;
   border: 1px solid #e5e7eb;
@@ -1688,22 +1690,73 @@ kbd, .ty-kbd {
   background: #ffffff;
   border: 1px solid var(--pk-border);
   box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.08);
+  text-align: center;
+}
+
+.auth-brand-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.auth-brand-head .ty-brand-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
 }
 
 .auth-card h1 {
-  font-size: 28px;
+  font-size: 26px;
+  letter-spacing: -0.03em;
   margin: 6px 0 4px;
 }
 
 .auth-subtitle {
   color: var(--pk-text-body);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.5;
   margin-bottom: 24px;
+}
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  padding-right: 64px !important;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--pk-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.password-toggle:hover {
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .auth-card form {
   display: grid;
   gap: 14px;
+  text-align: left;
 }
 
 .auth-card input {

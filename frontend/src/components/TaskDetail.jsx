@@ -169,20 +169,20 @@ function TaskDetail() {
               onClick={handleRegenerateLabels}
               disabled={labelsLoading}
             >
-              {labelsLoading ? "Generating with OpenAI…" : "✨ Regenerate AI Labels"}
+              {labelsLoading ? "Generating with AI…" : "✨ Regenerate AI Labels"}
             </button>
           </div>
 
-          <div className="task-labels-container">
+          <div className="task-labels-container" style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "12px" }}>
             {task.labels && task.labels.length > 0 ? (
               task.labels.map((label, idx) => (
-                <span key={idx} className="task-ai-label">
+                <span key={idx} className="task-ai-label task-ai-label-pill">
                   🏷️ {label}
                 </span>
               ))
             ) : (
               <p className="ty-labels-empty">
-                No labels generated yet. Click above to analyze this task with OpenAI.
+                No labels generated yet. Click above to auto-tag this task with AI.
               </p>
             )}
           </div>

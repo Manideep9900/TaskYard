@@ -99,14 +99,28 @@ function Auth({ onLogin }) {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <p className="eyebrow">TASKYARD</p>
+        <div className="auth-brand-head">
+          <div className="ty-brand-icon-stack">
+            <span className="ty-icon-layer layer-1" />
+            <span className="ty-icon-layer layer-2" />
+            <span className="ty-icon-layer layer-3" />
+          </div>
+          <span className="ty-brand-name">
+            Task<strong>Yard</strong>
+          </span>
+        </div>
 
-        <h1>{isLogin ? "Welcome Back" : "Create Account"}</h1>
+        <div className="ty-hero-pill-badge" style={{ margin: "16px auto 12px", width: "fit-content" }}>
+          <span className="ty-badge-tag">{isLogin ? "Sign In" : "Get Started"}</span>
+          <span className="ty-badge-text">Focus on what matters</span>
+        </div>
+
+        <h1>{isLogin ? "Welcome back" : "Create your account"}</h1>
 
         <p className="auth-subtitle">
           {isLogin
-            ? "Login to manage your tasks."
-            : "Create your TaskYard account."}
+            ? "Log in to access your tasks, Kanban board, and AI labels."
+            : "Get started with 100 free tasks every month. No credit card required."}
         </p>
 
         {/* Google OAuth Button */}

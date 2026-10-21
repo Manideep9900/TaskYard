@@ -84,18 +84,6 @@ function TaskForm({ onAddTask }) {
 
   return (
     <section className="task-form-container">
-      <div className="task-form-heading">
-        <div>
-          <p className="section-eyebrow">MAKE IT HAPPEN</p>
-          <h2>Create a task</h2>
-          <p>Add the next thing you want to get done.</p>
-        </div>
-
-        <span className="task-form-icon" aria-hidden="true">
-          +
-        </span>
-      </div>
-
       <form className="task-form" onSubmit={handleSubmit}>
         <div className="task-form-main">
           <div className="task-form-field title-field">
@@ -168,7 +156,7 @@ function TaskForm({ onAddTask }) {
             />
           </div>
 
-          {/* Image attachment field */}
+          {/* Friendly custom image attachment field */}
           <div className="task-form-field file-upload-field">
             <label htmlFor="task-image">
               Image attachment <small>(Max 1MB, images only)</small>
@@ -180,8 +168,26 @@ function TaskForm({ onAddTask }) {
               ref={fileInputRef}
               onChange={handleImageChange}
               disabled={isSubmitting}
-              className="task-file-input"
+              style={{ display: "none" }}
             />
+            <div className="ty-file-picker-row">
+              <button
+                type="button"
+                className="ty-file-choose-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSubmitting}
+              >
+                📎 Choose image
+              </button>
+              {imageFile ? (
+                <span className="ty-file-chosen-name" title={imageFile.name}>
+                  {imageFile.name}
+                </span>
+              ) : (
+                <span className="ty-file-empty-note">No image selected</span>
+              )}
+            </div>
+
             {imagePreview && (
               <div className="task-image-preview-badge">
                 <img src={imagePreview} alt="Selected preview" />

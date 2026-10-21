@@ -4028,3 +4028,65 @@ h4.completed .task-title-link {
   box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
 }
 
+
+
+/* =========================================================
+   Upgrade 5: Flatten TaskForm container & custom file picker
+   ========================================================= */
+.ty-task-form-wrap .task-form-container {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ty-file-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  flex-wrap: wrap;
+}
+
+.ty-file-choose-btn {
+  padding: 8px 14px;
+  border: 1px solid #c7d2fe;
+  border-radius: 9px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ty-file-choose-btn:hover {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+}
+
+.ty-file-chosen-name {
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 600;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ty-file-empty-note {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .ty-file-choose-btn {
+  background: #20333d;
+  border-color: #3a535e;
+  color: #d8e8ed;
+}
+
+[data-theme="dark"] .ty-file-choose-btn:hover {
+  background: #2a434f;
+}

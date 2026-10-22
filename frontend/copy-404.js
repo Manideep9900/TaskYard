@@ -11,3 +11,4 @@ if (fs.existsSync(indexPath)) {
   fs.copyFileSync(indexPath, notFoundPath);
   console.log('[SPA] Successfully generated dist/404.html from dist/index.html');
 }
+

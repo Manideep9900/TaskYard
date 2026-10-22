@@ -23,10 +23,23 @@ function Dashboard({
   logout,
   theme,
   toggleTheme,
+  onRetryTasks,
 }) {
   const tasksSectionRef = useRef(null);
   const searchInputRef = useRef(null);
   const navigate = useNavigate();
+
+  const [isSlowLoading, setIsSlowLoading] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => setIsSlowLoading(true), 3500);
+    } else {
+      setIsSlowLoading(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -542,7 +555,21 @@ function Dashboard({
           </div>
         </section>
 
-        {error && <p className="error-message ty-error">{error}</p>}
+        {error && (
+          <div className="error-message ty-error" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+            <span>{error}</span>
+            {onRetryTasks && (
+              <button
+                type="button"
+                className="ty-secondary-button"
+                onClick={onRetryTasks}
+                style={{ padding: "4px 12px", fontSize: "0.85rem", cursor: "pointer" }}
+              >
+                ↻ Retry
+              </button>
+            )}
+          </div>
+        )}
         {loading && <p className="status-message">Loading your tasks…</p>}
 
         {/* Create Task Card */}
@@ -625,9 +652,24 @@ function Dashboard({
               </div>
               {loading ? (
                 <div className="ty-empty-state">
-                  <span>◷</span>
-                  <h3>Loading tasks</h3>
-                  <p>Your workspace is getting ready.</p>
+                  <span>⏳</span>
+                  <h3>{isSlowLoading ? "Connecting to server..." : "Loading tasks"}</h3>
+                  <p>
+                    {isSlowLoading
+                      ? "Render's free tier spins down after inactivity. Server is waking up, please hold on..."
+                      : "Your workspace is getting ready."}
+                  </p>
+                </div>
+              ) : error ? (
+                <div className="ty-empty-state">
+                  <span>⚠️</span>
+                  <h3>Unable to load tasks</h3>
+                  <p>{error}</p>
+                  {onRetryTasks && (
+                    <button className="ty-secondary-button" onClick={onRetryTasks} style={{ marginTop: "1rem" }}>
+                      ↻ Retry Connection
+                    </button>
+                  )}
                 </div>
               ) : (
                 <KanbanBoard tasks={boardTasks} onMove={moveTask} />
@@ -715,9 +757,24 @@ function Dashboard({
 
               {loading ? (
                 <div className="ty-empty-state">
-                  <span>◷</span>
-                  <h3>Loading tasks</h3>
-                  <p>Your workspace is getting ready.</p>
+                  <span>⏳</span>
+                  <h3>{isSlowLoading ? "Connecting to server..." : "Loading tasks"}</h3>
+                  <p>
+                    {isSlowLoading
+                      ? "Render's free tier spins down after inactivity. Server is waking up, please hold on..."
+                      : "Your workspace is getting ready."}
+                  </p>
+                </div>
+              ) : error ? (
+                <div className="ty-empty-state">
+                  <span>⚠️</span>
+                  <h3>Unable to load tasks</h3>
+                  <p>{error}</p>
+                  {onRetryTasks && (
+                    <button className="ty-secondary-button" onClick={onRetryTasks} style={{ marginTop: "1rem" }}>
+                      ↻ Retry Connection
+                    </button>
+                  )}
                 </div>
               ) : sortedTasks.length === 0 ? (
                 <div className="ty-empty-state">
@@ -790,7 +847,7 @@ function App() {
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  useEffect(() => {
+  const fetchTasks = () => {
     if (!user) {
       setLoading(false);
       return;
@@ -810,6 +867,10 @@ function App() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchTasks();
   }, [user]);
 
   useEffect(() => {
@@ -859,6 +920,7 @@ function App() {
               logout={logout}
               theme={theme}
               toggleTheme={toggleTheme}
+              onRetryTasks={fetchTasks}
             />
           </ProtectedRoute>
         }

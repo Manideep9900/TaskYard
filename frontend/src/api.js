@@ -1,4 +1,38 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== "undefined" && window.location.hostname.endsWith(".onrender.com")
+    ? "https://task-manager-qszt.onrender.com"
+    : "http://localhost:3000");
+
+// Helper to fetch with a timeout and automatic retry (crucial for Render free-tier cold starts)
+async function fetchWithRetry(url, options = {}, maxRetries = 2, delayMs = 2000) {
+  const method = (options.method || "GET").toUpperCase();
+  const isSafeToRetry = method === "GET" || method === "HEAD";
+  const timeoutMs = options.timeoutMs || (isSafeToRetry ? 30000 : 25000);
+  const retries = isSafeToRetry ? maxRetries : 0;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: options.signal || controller.signal,
+      });
+      clearTimeout(timer);
+      return response;
+    } catch (err) {
+      clearTimeout(timer);
+      const isLastAttempt = attempt === retries;
+      if (isLastAttempt) {
+        throw err;
+      }
+      // Wait before retrying (Render takes ~30-50s to wake from sleep)
+      await new Promise((resolve) => setTimeout(resolve, delayMs * (attempt + 1)));
+    }
+  }
+}
 
 export async function apiRequest(path, options = {}) {
   const token = localStorage.getItem("token");
@@ -17,13 +51,14 @@ export async function apiRequest(path, options = {}) {
   let response;
 
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetchWithRetry(`${API_URL}${path}`, {
       ...options,
       headers,
     });
-  } catch {
+  } catch (err) {
+    console.warn("[API] Connection attempt failed:", err.message);
     throw new Error(
-      "Unable to connect to the server. Please check your connection."
+      "Unable to connect to the server. The free backend may still be waking up. Please retry in a few moments."
     );
   }
 
@@ -71,14 +106,21 @@ export async function apiUpload(path, formData, method = "POST") {
   let response;
 
   try {
-    response = await fetch(`${API_URL}${path}`, {
-      method,
-      headers,
-      body: formData,
-    });
-  } catch {
+    response = await fetchWithRetry(
+      `${API_URL}${path}`,
+      {
+        method,
+        headers,
+        body: formData,
+        timeoutMs: 35000,
+      },
+      1,
+      2500
+    );
+  } catch (err) {
+    console.warn("[API] Upload failed:", err.message);
     throw new Error(
-      "Unable to connect to the server. Please check your connection."
+      "Unable to upload to the server. Please check your connection and retry."
     );
   }
 
